@@ -16,15 +16,25 @@
     background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
     color: white; padding: 14px 24px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
   }
   header h1 { margin: 0; font-size: 20px; font-weight: 600; }
   header .subtitle { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 14px; }
   .shortcuts { font-size: 11px; opacity: 0.85; font-family: monospace; }
   .shortcuts kbd {
     background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 3px;
     border: 1px solid rgba(255,255,255,0.3); font-size: 11px;
   }
+  .about-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white; padding: 5px 12px;
+    border-radius: 6px; font-size: 12px;
+    cursor: pointer; font-family: inherit;
+    transition: background 0.15s;
+  }
+  .about-btn:hover { background: rgba(255,255,255,0.22); }
   .algo-bar {
     background: white; padding: 10px 24px;
     border-bottom: 1px solid #e2e8f0;
@@ -101,10 +111,16 @@
     transition: all 0.15s; color: #475569; font-family: inherit;
   }
   .btn:hover { background: #f8fafc; border-color: #94a3b8; }
-  .btn.primary {
-    background: #3b82f6; color: white; border-color: #2563eb;
-  }
+  .btn.primary { background: #3b82f6; color: white; border-color: #2563eb; }
   .btn.primary:hover { background: #2563eb; }
+  .btn.warn {
+    background: #fef3c7; color: #92400e; border-color: #fcd34d;
+  }
+  .btn.warn:hover { background: #fde68a; border-color: #f59e0b; }
+  .btn.danger {
+    background: #fee2e2; color: #991b1b; border-color: #fca5a5;
+  }
+  .btn.danger:hover { background: #fecaca; }
   .controls {
     display: flex; gap: 8px; align-items: center;
     margin-bottom: 14px; flex-wrap: wrap;
@@ -118,20 +134,11 @@
     transition: all 0.15s; font-family: inherit;
   }
   .ctrl-btn:hover:not(:disabled) { background: #f1f5f9; }
-  .ctrl-btn.play {
-    background: #10b981; color: white; border-color: #059669;
-    font-size: 12px;
-  }
+  .ctrl-btn.play { background: #10b981; color: white; border-color: #059669; font-size: 12px; }
   .ctrl-btn.play:hover { background: #059669; }
-  .ctrl-btn.pause {
-    background: #f59e0b; color: white; border-color: #d97706;
-    font-size: 12px;
-  }
+  .ctrl-btn.pause { background: #f59e0b; color: white; border-color: #d97706; font-size: 12px; }
   .ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .speed-control {
-    display: flex; align-items: center; gap: 8px;
-    margin-left: auto;
-  }
+  .speed-control { display: flex; align-items: center; gap: 8px; margin-left: auto; }
   .speed-control input[type="range"] { width: 110px; }
   .clock {
     font-family: 'SF Mono', Consolas, Monaco, monospace;
@@ -161,16 +168,9 @@
     border-radius: 0 4px 4px 0; border-right: none;
     box-shadow: 0 0 0 2px #1e40af;
   }
-  .gantt-axis {
-    display: flex; margin-top: 4px;
-    font-size: 10px; color: #64748b;
-    font-family: monospace;
-  }
+  .gantt-axis { display: flex; margin-top: 4px; font-size: 10px; color: #64748b; font-family: monospace; }
   .gantt-tick { text-align: left; flex-shrink: 0; }
-  .gantt-empty {
-    color: #94a3b8; font-size: 13px;
-    padding: 12px 8px; font-style: italic;
-  }
+  .gantt-empty { color: #94a3b8; font-size: 13px; padding: 12px 8px; font-style: italic; }
   .queues { display: flex; flex-direction: column; gap: 8px; }
   .queue-row {
     display: flex; align-items: center; gap: 12px;
@@ -182,13 +182,8 @@
   .queue-row.priority-2 { border-left-color: #10b981; }
   .queue-row.cpu { border-left-color: #1e40af; background: #eff6ff; }
   .queue-row.pending { border-left-color: #94a3b8; background: #fafbfc; }
-  .queue-label {
-    font-size: 12px; font-weight: 600; color: #475569;
-    min-width: 150px;
-  }
-  .queue-items {
-    display: flex; gap: 5px; flex-wrap: wrap; flex: 1;
-  }
+  .queue-label { font-size: 12px; font-weight: 600; color: #475569; min-width: 150px; }
+  .queue-items { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
   .queue-pill {
     padding: 3px 9px; border-radius: 4px; color: white;
     font-size: 12px; font-weight: 600;
@@ -202,25 +197,23 @@
   .queue-empty { color: #94a3b8; font-size: 12px; font-style: italic; }
   .metrics-table { font-size: 12px; }
   .metrics-table td { padding: 5px 4px; }
-  .metrics-table tr.finished td:first-child { color: inherit; }
   .metrics-table tfoot tr { font-weight: 600; background: #f8fafc; }
-  .metrics-table tfoot td { border-top: 2px solid #cbd5e1; padding-top: 6px; }
+  .metrics-table tfoot tr.totals td { border-top: 2px solid #cbd5e1; padding-top: 6px; }
+  .metrics-table tfoot tr.avg td { color: #475569; }
+  .metrics-table tfoot tr td:first-child { color: #1e293b; }
   .banner {
     border-left: 4px solid #f59e0b; background: #fef3c7;
     padding: 10px 14px; border-radius: 4px;
     margin-bottom: 10px; font-size: 13px; color: #78350f;
     display: flex; gap: 10px; align-items: flex-start;
   }
-  .banner.starvation {
-    background: #fee2e2; border-left-color: #dc2626; color: #7f1d1d;
-  }
+  .banner.starvation { background: #fee2e2; border-left-color: #dc2626; color: #7f1d1d; }
   .banner.starvation em { color: #991b1b; font-weight: 600; font-style: normal; }
   .banner-icon { font-size: 16px; flex-shrink: 0; line-height: 1.4; }
   .banner-body { flex: 1; }
   .banner-close {
     background: none; border: none; cursor: pointer;
-    color: inherit; font-size: 16px; opacity: 0.5;
-    padding: 0; line-height: 1;
+    color: inherit; font-size: 16px; opacity: 0.5; padding: 0; line-height: 1;
   }
   .banner-close:hover { opacity: 1; }
   .quantum-input {
@@ -239,10 +232,7 @@
     gap: 6px; margin-top: 10px;
     padding: 10px; background: #f8fafc; border-radius: 6px;
   }
-  .info-item {
-    display: flex; flex-direction: column;
-    padding: 4px 6px; border-radius: 4px;
-  }
+  .info-item { display: flex; flex-direction: column; padding: 4px 6px; border-radius: 4px; }
   .info-item.q0 { border-left: 3px solid #ef4444; }
   .info-item.q1 { border-left: 3px solid #f59e0b; }
   .info-item.q2 { border-left: 3px solid #10b981; }
@@ -260,6 +250,100 @@
   .state-ready.starving { background: #fecaca; color: #991b1b; }
   .state-running { background: #dbeafe; color: #1e40af; }
   .state-finished { background: #d1fae5; color: #065f46; }
+
+  /* "¿Qué ha pasado?" button */
+  #starvation-result { margin-top: 12px; }
+  .breathe-btn {
+    background: #fee2e2; color: #991b1b;
+    border: 1.5px solid #fca5a5; padding: 10px 18px;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 8px;
+    animation: breathe 2.6s ease-in-out infinite;
+    transition: background 0.15s;
+  }
+  .breathe-btn:hover {
+    background: #fecaca; animation-play-state: paused;
+  }
+  .breathe-btn::before { content: '🔍'; }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220,38,38,0.35); }
+    50% { transform: scale(1.025); box-shadow: 0 0 0 10px rgba(220,38,38,0); }
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.55);
+    z-index: 1000;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 10px;
+    max-width: 620px; width: 100%;
+    max-height: 88vh; overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column;
+    animation: modalIn 0.18s ease-out;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(15px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal-header {
+    display: flex; justify-content: space-between;
+    align-items: center;
+    padding: 14px 22px;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+  }
+  .modal-title { margin: 0; font-size: 15px; font-weight: 600; color: #0f172a; }
+  .modal-close {
+    background: none; border: none; cursor: pointer;
+    color: #94a3b8; font-size: 18px; padding: 4px 8px;
+    border-radius: 4px; font-family: inherit;
+  }
+  .modal-close:hover { color: #475569; background: #f1f5f9; }
+  .modal-body {
+    padding: 18px 22px; font-size: 13px;
+    color: #334155; overflow-y: auto;
+    line-height: 1.55;
+  }
+  .modal-body h4 {
+    margin: 16px 0 6px; font-size: 13px; color: #1e40af; font-weight: 600;
+  }
+  .modal-body h4:first-child { margin-top: 0; }
+  .modal-body p { margin: 6px 0; }
+  .modal-body ul { padding-left: 20px; margin: 6px 0; }
+  .modal-body li { margin: 4px 0; }
+  .modal-body a { color: #2563eb; text-decoration: none; }
+  .modal-body a:hover { text-decoration: underline; }
+  .modal-body strong { color: #0f172a; }
+  .modal-body em { font-style: italic; color: #1e3a8a; }
+  .modal-footer {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 12px 22px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc; flex-shrink: 0;
+  }
+  .modal-footer:empty { display: none; }
+  .about-contact {
+    display: grid; grid-template-columns: 1fr;
+    gap: 6px; padding: 12px 14px;
+    background: #f8fafc; border-radius: 6px;
+    margin: 6px 0;
+  }
+  .contact-item {
+    display: flex; gap: 10px; align-items: baseline;
+    font-size: 13px;
+  }
+  .contact-item .label {
+    color: #64748b; min-width: 100px; font-size: 12px;
+  }
+
   @media (max-width: 980px) {
     .container { grid-template-columns: 1fr; }
     .speed-control { margin-left: 0; }
@@ -273,8 +357,11 @@
     <h1>Simulador de Planificación de CPU</h1>
     <div class="subtitle">Herramienta didáctica · Sistemas Operativos</div>
   </div>
-  <div class="shortcuts">
-    Atajos: <kbd>Espacio</kbd> play/pausa · <kbd>→</kbd> paso · <kbd>←</kbd> retroceder · <kbd>R</kbd> reset
+  <div class="header-right">
+    <div class="shortcuts">
+      <kbd>Espacio</kbd> play/pausa · <kbd>→</kbd> paso · <kbd>←</kbd> retroceder · <kbd>R</kbd> reset
+    </div>
+    <button class="about-btn" id="btn-about" title="Acerca de">ⓘ Acerca de</button>
   </div>
 </header>
 
@@ -287,6 +374,7 @@
   <div class="algo-separator"></div>
   <div class="algo-group">
     <span class="algo-group-label">Apropiativos</span>
+    <button class="algo-btn" data-algo="SJFP">SJF Apropiativo</button>
     <button class="algo-btn" data-algo="SRTF">SRTF</button>
     <button class="algo-btn" data-algo="RR">Round Robin</button>
   </div>
@@ -308,7 +396,7 @@
           <th>PID</th>
           <th>Llegada</th>
           <th>Ráfaga</th>
-          <th id="th-queue">Cola</th>
+          <th id="th-queue">Cola o Prioridad</th>
           <th></th>
         </tr>
       </thead>
@@ -318,6 +406,7 @@
       <button class="btn primary" id="btn-add">+ Añadir</button>
       <button class="btn" id="btn-example">Cargar ejemplo</button>
       <button class="btn" id="btn-clear">Vaciar</button>
+      <button class="btn warn" id="btn-starvation" style="display:none;">⚠ Caso de inanición</button>
     </div>
     <div class="quantum-input" id="quantum-section">
       <label>Quantum:</label>
@@ -325,22 +414,10 @@
       <span style="color:#64748b;font-size:11px;">unidades de tiempo</span>
     </div>
     <div class="multi-info" id="multi-info" style="display:none;">
-      <div class="info-item q0">
-        <span class="info-label">Q0 alta</span>
-        <span class="info-value">RR q=2</span>
-      </div>
-      <div class="info-item q1">
-        <span class="info-label">Q1 media</span>
-        <span class="info-value">RR q=4</span>
-      </div>
-      <div class="info-item q2">
-        <span class="info-label">Q2 baja</span>
-        <span class="info-value">FCFS</span>
-      </div>
-      <div class="info-item gen">
-        <span class="info-label">Preemption</span>
-        <span class="info-value">Entre colas</span>
-      </div>
+      <div class="info-item q0"><span class="info-label">Q0 alta</span><span class="info-value">RR q=2</span></div>
+      <div class="info-item q1"><span class="info-label">Q1 media</span><span class="info-value">RR q=4</span></div>
+      <div class="info-item q2"><span class="info-label">Q2 baja</span><span class="info-value">FCFS</span></div>
+      <div class="info-item gen"><span class="info-label">Preemption</span><span class="info-value">Entre colas</span></div>
     </div>
   </aside>
 
@@ -384,24 +461,39 @@
       <tfoot id="metrics-tfoot"></tfoot>
     </table>
     <div style="font-size:11px;color:#64748b;margin-top:6px;">
-      <strong>TE</strong> = Tiempo de Espera (TR − Ráfaga) · 
-      <strong>TR</strong> = Tiempo de Retorno (Finalización − Llegada) · 
+      <strong>TE</strong> = Tiempo de Espera (TR − Ráfaga) ·
+      <strong>TR</strong> = Tiempo de Retorno (Finalización − Llegada) ·
       <strong>T.Resp</strong> = Tiempo de Respuesta (Primer uso CPU − Llegada)
     </div>
+    <div id="starvation-result"></div>
   </main>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title"></h2>
+      <button class="modal-close" id="modal-close-btn" title="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
 </div>
 
 <script>
 'use strict';
 
-const COLORS = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16'];
+const COLORS = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7','#0ea5e9'];
 const IDLE_COLOR = '#cbd5e1';
-const BLOCK_W = 34; // px per time unit in Gantt
+const BLOCK_W = 34;
+const STARVATION_ALGOS = ['SJF', 'SJFP', 'SRTF'];
 
 const EXPLANATIONS = {
   FCFS: `<strong>FCFS (First-Come, First-Served · No apropiativo):</strong> Los procesos se atienden estrictamente en el orden de llegada a la cola de listos. Una vez que un proceso obtiene la CPU, no la libera hasta terminar. <em>Ventajas:</em> simple y predecible. <em>Inconvenientes:</em> <em>efecto convoy</em> — un proceso largo retrasa a todos los siguientes y penaliza el tiempo medio de espera.`,
   SJF: `<strong>SJF (Shortest Job First · No apropiativo):</strong> Cuando la CPU queda libre, se selecciona de entre los procesos listos aquel con la <em>ráfaga total más corta</em>. <em>Ventajas:</em> minimiza el tiempo medio de espera (óptimo entre los no apropiativos). <em>Inconvenientes:</em> requiere conocer la ráfaga de antemano (en la práctica se estima) y puede provocar <em>inanición</em> de procesos largos.`,
-  SRTF: `<strong>SRTF (Shortest Remaining Time First · Apropiativo):</strong> Versión expulsiva de SJF. En cada unidad de tiempo se compara el tiempo restante del proceso en CPU con el de los listos; si hay alguno menor, se le cede la CPU. <em>Ventajas:</em> óptimo en tiempo medio de espera. <em>Inconvenientes:</em> mayor sobrecarga por cambios de contexto y riesgo de <em>inanición</em>.`,
+  SJFP: `<strong>SJF Apropiativo (Shortest Job First Preemptive):</strong> Versión expulsiva de SJF. Cuando llega un nuevo proceso, si su <em>ráfaga total</em> es menor que la del proceso en CPU, lo expulsa. La comparación se hace siempre por la ráfaga original (no el tiempo restante), por lo que el progreso ya realizado por un proceso no se considera. <em>Ventajas:</em> reduce el tiempo medio de espera frente a SJF puro. <em>Inconvenientes:</em> puede tomar decisiones subóptimas (un proceso casi terminado puede ser expulsado por otro de ráfaga menor pero con más trabajo restante); riesgo de <em>inanición</em>. SRTF lo corrige usando el tiempo restante.`,
+  SRTF: `<strong>SRTF (Shortest Remaining Time First · Apropiativo):</strong> En cada unidad de tiempo se compara el <em>tiempo restante</em> del proceso en CPU con el de los listos; si hay alguno menor, se le cede la CPU. A diferencia de SJF Apropiativo, refleja el progreso ya realizado. <em>Ventajas:</em> óptimo en tiempo medio de espera. <em>Inconvenientes:</em> mayor sobrecarga por cambios de contexto y riesgo de <em>inanición</em>.`,
   RR: `<strong>Round Robin · Apropiativo:</strong> Cada proceso recibe un <em>quantum</em> fijo de CPU; al agotarlo vuelve al final de la cola de listos. <em>Ventajas:</em> tiempo de respuesta acotado, justicia entre procesos, ideal para sistemas interactivos. <em>Sensible al quantum:</em> muy pequeño produce excesivos cambios de contexto; muy grande degenera en FCFS.`,
   MULTI: `<strong>Planificación Multinivel (Multilevel Queue · Apropiativo entre colas):</strong> Los procesos se asignan a una cola según su naturaleza o prioridad y cada cola usa su propia política. Aquí: <em>Q0</em> RR q=2, <em>Q1</em> RR q=4, <em>Q2</em> FCFS. Una cola de menor prioridad solo recibe CPU cuando las superiores están vacías; un proceso de cola alta <em>expulsa</em> al de cola baja. <em>Sin envejecimiento (aging),</em> los procesos en Q2 pueden sufrir <em>inanición</em>.`
 };
@@ -418,6 +510,12 @@ const EXAMPLES = {
     { pid:'P2', arrivalTime:2, burstTime:4, queueLevel:0 },
     { pid:'P3', arrivalTime:4, burstTime:1, queueLevel:0 },
     { pid:'P4', arrivalTime:5, burstTime:4, queueLevel:0 },
+  ],
+  SJFP: [
+    { pid:'P1', arrivalTime:0, burstTime:8, queueLevel:0 },
+    { pid:'P2', arrivalTime:1, burstTime:4, queueLevel:0 },
+    { pid:'P3', arrivalTime:2, burstTime:9, queueLevel:0 },
+    { pid:'P4', arrivalTime:3, burstTime:5, queueLevel:0 },
   ],
   SRTF: [
     { pid:'P1', arrivalTime:0, burstTime:8, queueLevel:0 },
@@ -442,6 +540,23 @@ const EXAMPLES = {
   ],
 };
 
+// Caso de inanición común para SJF, SJF Apropiativo y SRTF.
+// P1 (ráfaga 10) llega en T=0 y se ve continuamente postergado por una cadena
+// de procesos cortos (ráfaga 2) que llegan cada 2 unidades.
+const STARVATION_CASE = [
+  { pid:'P1',  arrivalTime:0,  burstTime:10, queueLevel:0 },
+  { pid:'P2',  arrivalTime:0,  burstTime:2,  queueLevel:0 },
+  { pid:'P3',  arrivalTime:1,  burstTime:2,  queueLevel:0 },
+  { pid:'P4',  arrivalTime:3,  burstTime:2,  queueLevel:0 },
+  { pid:'P5',  arrivalTime:5,  burstTime:2,  queueLevel:0 },
+  { pid:'P6',  arrivalTime:7,  burstTime:2,  queueLevel:0 },
+  { pid:'P7',  arrivalTime:9,  burstTime:2,  queueLevel:0 },
+  { pid:'P8',  arrivalTime:11, burstTime:2,  queueLevel:0 },
+  { pid:'P9',  arrivalTime:13, burstTime:2,  queueLevel:0 },
+  { pid:'P10', arrivalTime:15, burstTime:2,  queueLevel:0 },
+  { pid:'P11', arrivalTime:17, burstTime:2,  queueLevel:0 },
+];
+
 // ───────────────── State ─────────────────
 let processes = [];
 let algorithm = 'FCFS';
@@ -451,6 +566,7 @@ let isRunning = false;
 let speed = 800;
 let timer = null;
 let banners = [];
+let isStarvationCase = false;
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const $ = (id) => document.getElementById(id);
@@ -555,7 +671,6 @@ function schedule() {
       if (algorithm === 'FCFS') {
         pid = runtime.readyQueue.shift();
       } else {
-        // SJF: pick min burstTime (tiebreak: arrival, then pid order in array)
         runtime.readyQueue.sort((a, b) => {
           const pa = getProc(a), pb = getProc(b);
           if (pa.burstTime !== pb.burstTime) return pa.burstTime - pb.burstTime;
@@ -566,14 +681,16 @@ function schedule() {
       runtime.runningPid = pid;
       getProc(pid).state = 'running';
     }
-  } else if (algorithm === 'SRTF') {
-    // Preemptive on every tick
+  } else if (algorithm === 'SJFP' || algorithm === 'SRTF') {
+    // Preemptive: SJFP compares by burstTime, SRTF by remaining
     const cand = [...runtime.readyQueue];
     if (runtime.runningPid) cand.push(runtime.runningPid);
     if (cand.length > 0) {
       cand.sort((a, b) => {
         const pa = getProc(a), pb = getProc(b);
-        if (pa.remaining !== pb.remaining) return pa.remaining - pb.remaining;
+        const ka = (algorithm === 'SJFP') ? pa.burstTime : pa.remaining;
+        const kb = (algorithm === 'SJFP') ? pb.burstTime : pb.remaining;
+        if (ka !== kb) return ka - kb;
         return pa.arrivalTime - pb.arrivalTime;
       });
       const newPid = cand[0];
@@ -595,7 +712,6 @@ function schedule() {
       runtime.quantumUsed = 0;
     }
   } else if (algorithm === 'MULTI') {
-    // Preempt if higher priority queue has process
     if (runtime.runningPid) {
       const r = getProc(runtime.runningPid);
       let preempt = false;
@@ -687,9 +803,9 @@ function detectStarvation() {
 function addStarvationBanner(p) {
   let msg;
   if (algorithm === 'MULTI') {
-    msg = `<strong>⚠️ Inanición detectada en ${p.pid}</strong> (cola Q${p.queueLevel}): lleva <em>${p.ticksWithoutRun} unidades</em> en espera sin recibir CPU. En multinivel, los procesos de colas inferiores quedan pospuestos mientras lleguen procesos a colas superiores. Sin <em>envejecimiento (aging)</em>, la espera puede ser indefinida. <strong>Acción didáctica:</strong> reinicia con otra configuración donde las colas superiores se vacíen periódicamente para evitarlo.`;
-  } else if (algorithm === 'SJF' || algorithm === 'SRTF') {
-    msg = `<strong>⚠️ Inanición detectada en ${p.pid}</strong>: lleva <em>${p.ticksWithoutRun} unidades</em> en espera. En ${algorithm}, los procesos largos pueden ser pospuestos indefinidamente si siguen llegando otros más cortos. <strong>Acción didáctica:</strong> reinicia con una configuración donde no entren continuamente procesos de menor ráfaga.`;
+    msg = `<strong>⚠️ Inanición detectada en ${p.pid}</strong> (cola Q${p.queueLevel}): lleva <em>${p.ticksWithoutRun} unidades</em> en espera sin recibir CPU. En multinivel, los procesos de colas inferiores quedan pospuestos mientras lleguen procesos a colas superiores. Sin <em>envejecimiento (aging)</em>, la espera puede ser indefinida.`;
+  } else if (algorithm === 'SJF' || algorithm === 'SJFP' || algorithm === 'SRTF') {
+    msg = `<strong>⚠️ Inanición detectada en ${p.pid}</strong>: lleva <em>${p.ticksWithoutRun} unidades</em> en espera. En ${algorithm}, los procesos largos pueden ser pospuestos indefinidamente si siguen llegando otros más cortos.`;
   } else {
     msg = `<strong>⚠️ Espera prolongada en ${p.pid}</strong>: lleva ${p.ticksWithoutRun} unidades en espera.`;
   }
@@ -740,6 +856,7 @@ function render() {
   renderMetrics();
   renderBanners();
   renderControlButtons();
+  renderStarvationResult();
 }
 
 function renderGantt() {
@@ -784,7 +901,6 @@ function renderQueues() {
   const c = $('queues');
   c.innerHTML = '';
 
-  // CPU
   const cpuRow = document.createElement('div');
   cpuRow.className = 'queue-row cpu';
   let cpuItems;
@@ -800,7 +916,6 @@ function renderQueues() {
   cpuRow.innerHTML = `<span class="queue-label">🖥️ CPU</span><div class="queue-items">${cpuItems}</div>`;
   c.appendChild(cpuRow);
 
-  // Ready queues
   if (algorithm === 'MULTI') {
     const labels = ['Q0 · RR q=2 (alta)', 'Q1 · RR q=4 (media)', 'Q2 · FCFS (baja)'];
     runtime.queues.forEach((q, idx) => {
@@ -830,7 +945,7 @@ function renderQueues() {
     c.appendChild(row);
   }
 
-  // Pending arrivals
+  // Pendientes de llegar
   const pend = runtime.procs.filter(p => p.state === 'new');
   if (pend.length > 0) {
     const row = document.createElement('div');
@@ -871,14 +986,25 @@ function renderMetrics() {
   });
 
   if (sums.count > 0) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td colspan="2">Promedios (${sums.count} finalizado${sums.count === 1 ? '' : 's'})</td>
+    const totRow = document.createElement('tr');
+    totRow.className = 'totals';
+    totRow.innerHTML = `
+      <td colspan="2">Acumulados (${sums.count} finalizado${sums.count === 1 ? '' : 's'})</td>
+      <td>${sums.te}</td>
+      <td>${sums.tr}</td>
+      <td>${sums.tresp}</td>
+      <td>—</td>`;
+    tf.appendChild(totRow);
+
+    const avgRow = document.createElement('tr');
+    avgRow.className = 'avg';
+    avgRow.innerHTML = `
+      <td colspan="2">Promedios</td>
       <td>${(sums.te / sums.count).toFixed(2)}</td>
       <td>${(sums.tr / sums.count).toFixed(2)}</td>
       <td>${(sums.tresp / sums.count).toFixed(2)}</td>
       <td>—</td>`;
-    tf.appendChild(tr);
+    tf.appendChild(avgRow);
   }
 }
 
@@ -893,7 +1019,7 @@ function renderBanners() {
   });
   c.querySelectorAll('.banner-close').forEach(btn => {
     btn.onclick = (e) => {
-      banners.splice(+e.target.dataset.i, 1);
+      banners.splice(+e.currentTarget.dataset.i, 1);
       renderBanners();
     };
   });
@@ -903,6 +1029,19 @@ function renderControlButtons() {
   $('btn-back').disabled = runtime.snapshots.length === 0;
   $('btn-step').disabled = allFinished() || runtime.procs.length === 0;
   $('btn-play').disabled = allFinished() || runtime.procs.length === 0;
+}
+
+function renderStarvationResult() {
+  const c = $('starvation-result');
+  c.innerHTML = '';
+  if (isStarvationCase && allFinished() && STARVATION_ALGOS.includes(algorithm)) {
+    const btn = document.createElement('button');
+    btn.className = 'breathe-btn';
+    btn.id = 'btn-what-happened';
+    btn.textContent = '¿Qué ha pasado?';
+    btn.onclick = showStarvationExplanationModal;
+    c.appendChild(btn);
+  }
 }
 
 // ───────────────── Process Table ─────────────────
@@ -938,13 +1077,15 @@ function renderProcessTable() {
       if (f !== 'pid') v = Math.max(f === 'burstTime' ? 1 : 0, parseInt(v) || 0);
       if (f === 'queueLevel') v = Math.min(2, Math.max(0, v));
       processes[i][f] = v;
+      isStarvationCase = false;
       resetSimulation();
       renderProcessTable();
     };
   });
   tb.querySelectorAll('.btn-del').forEach(btn => {
     btn.onclick = (e) => {
-      processes.splice(+e.target.dataset.i, 1);
+      processes.splice(+e.currentTarget.dataset.i, 1);
+      isStarvationCase = false;
       resetSimulation();
       renderProcessTable();
     };
@@ -958,18 +1099,21 @@ function addProcess() {
   });
   const next = (nums.length ? Math.max(...nums) : 0) + 1;
   processes.push({ pid: `P${next}`, arrivalTime: 0, burstTime: 5, queueLevel: 0 });
+  isStarvationCase = false;
   resetSimulation();
   renderProcessTable();
 }
 
 function loadExample() {
-  processes = clone(EXAMPLES[algorithm]);
+  processes = clone(EXAMPLES[algorithm] || EXAMPLES.FCFS);
+  isStarvationCase = false;
   resetSimulation();
   renderProcessTable();
 }
 
 function clearProcesses() {
   processes = [];
+  isStarvationCase = false;
   resetSimulation();
   renderProcessTable();
 }
@@ -982,8 +1126,112 @@ function setAlgorithm(algo) {
   $('explanation').innerHTML = EXPLANATIONS[algo];
   $('quantum-section').style.display = (algo === 'RR') ? 'flex' : 'none';
   $('multi-info').style.display = (algo === 'MULTI') ? 'grid' : 'none';
+  $('btn-starvation').style.display = STARVATION_ALGOS.includes(algo) ? '' : 'none';
   resetSimulation();
   renderProcessTable();
+}
+
+// ───────────────── Modals ─────────────────
+function openModal(title, bodyHtml, footerHtml = '') {
+  $('modal-title').textContent = title;
+  $('modal-body').innerHTML = bodyHtml;
+  $('modal-footer').innerHTML = footerHtml;
+  $('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  $('modal-overlay').classList.remove('open');
+}
+
+function showAboutModal() {
+  const body = `
+    <h4>Autor</h4>
+    <div class="about-contact">
+      <div class="contact-item"><span class="label">Nombre</span><span>Manuel Alonso Carracedo</span></div>
+      <div class="contact-item"><span class="label">Email</span><a href="mailto:manuel.alonso.carracedo@uvigo.gal">manuel.alonso.carracedo@uvigo.gal</a></div>
+      <div class="contact-item"><span class="label">ResearchGate</span><a href="https://www.researchgate.net/profile/Manuel-Alonso-Carracedo" target="_blank" rel="noopener">profile/Manuel-Alonso-Carracedo</a></div>
+      <div class="contact-item"><span class="label">ORCID</span><a href="https://orcid.org/0009-0001-5037-5826" target="_blank" rel="noopener">0009-0001-5037-5826</a></div>
+    </div>
+    <h4>Contexto académico</h4>
+    <p>Aplicación desarrollada en el contexto del <strong>Máster Universitario en Profesorado de Educación Secundaria Obligatoria y Bachillerato, Formación Profesional y Enseñanza de Idiomas</strong>, cursado en la <strong>UCAV</strong>, para la asignatura <em>Metodología y Evaluación en Matemáticas e Informática</em>.</p>
+    <p style="color:#64748b;font-size:12px;margin-top:14px;">Herramienta didáctica para visualizar algoritmos de planificación de CPU.</p>
+  `;
+  openModal('Acerca de', body, `<button class="btn primary" data-action="close">Cerrar</button>`);
+}
+
+function openStarvationConfirmModal() {
+  const body = `
+    <p>Se va a cargar una <strong>configuración de procesos específica</strong> diseñada para provocar un escenario de <em>inanición</em> con los algoritmos no equitativos (<strong>SJF</strong>, <strong>SJF Apropiativo</strong> y <strong>SRTF</strong>).</p>
+    <p>Esta acción <strong>sobrescribirá la configuración de procesos actual</strong>.</p>
+    <p>¿Deseas continuar?</p>
+  `;
+  openModal(
+    'Cargar caso de inanición',
+    body,
+    `<button class="btn" data-action="cancel">Cancelar</button>
+     <button class="btn danger" data-action="confirm-starvation">Sí, sobrescribir</button>`
+  );
+}
+
+function loadStarvationCase() {
+  processes = clone(STARVATION_CASE);
+  isStarvationCase = true;
+  resetSimulation();
+  renderProcessTable();
+}
+
+function showStarvationExplanationModal() {
+  const finished = runtime.procs.filter(p => p.state === 'finished');
+  if (finished.length === 0) return;
+
+  // El "starving" es el de mayor ráfaga (víctima); los demás son la cadena corta.
+  const victim = [...finished].sort((a, b) => b.burstTime - a.burstTime)[0];
+  const tret = victim.finishTime - victim.arrivalTime;
+  const te = tret - victim.burstTime;
+  const tresp = victim.firstRunTime - victim.arrivalTime;
+  const shorts = finished.filter(p => p.pid !== victim.pid);
+  const shortBurst = shorts.length > 0 ? shorts[0].burstTime : 2;
+
+  let mechanism;
+  if (algorithm === 'SJF') {
+    mechanism = `<p>En <strong>SJF no apropiativo</strong>, cada vez que la CPU queda libre el planificador elige el proceso listo con la <em>ráfaga total más corta</em>. Como cada ${shortBurst} unidades llega un nuevo proceso de ráfaga ${shortBurst}, este siempre es más corto que <strong>${victim.pid}</strong> (ráfaga ${victim.burstTime}) y se cuela por delante.</p>
+    <p>Aunque <strong>${victim.pid}</strong> llegó <em>el primero</em> (T = ${victim.arrivalTime}), tuvo que esperar a que la cadena de procesos cortos se interrumpiera (T = ${victim.firstRunTime}) para poder empezar a ejecutarse.</p>`;
+  } else if (algorithm === 'SJFP') {
+    mechanism = `<p>En <strong>SJF Apropiativo</strong>, la comparación se hace por la <em>ráfaga original</em>. Cada vez que llega un nuevo proceso de ráfaga ${shortBurst}, como ${shortBurst} &lt; ${victim.burstTime}, <strong>expulsa</strong> a <strong>${victim.pid}</strong> de la CPU sin considerar el progreso acumulado.</p>
+    <p>Como la llegada de procesos cortos es ininterrumpida, <strong>${victim.pid}</strong> no consigue progresar hasta que la cadena se rompe (T = ${victim.firstRunTime}).</p>`;
+  } else { // SRTF
+    mechanism = `<p>En <strong>SRTF</strong>, el planificador compara el <em>tiempo restante</em>. Cuando llega un proceso con ráfaga ${shortBurst}, su tiempo restante es menor que el de <strong>${victim.pid}</strong>, que durante casi toda la simulación todavía tiene un tiempo restante mayor o igual que ${shortBurst}.</p>
+    <p>SRTF expulsa repetidamente a <strong>${victim.pid}</strong> en favor de cada recién llegado más corto, posponiendo su primera ejecución hasta T = ${victim.firstRunTime}.</p>`;
+  }
+
+  const body = `
+    <h4>¿Qué ha pasado en este ejemplo?</h4>
+    <p>Has ejecutado el <em>caso de inanición</em> con el algoritmo <strong>${algorithm}</strong>. El proceso <strong>${victim.pid}</strong> (ráfaga ${victim.burstTime}), que llegó en T = ${victim.arrivalTime}, ha esperado mucho más de lo razonable mientras una cadena de ${shorts.length} procesos cortos (ráfaga ${shortBurst}) le pasaban por delante.</p>
+
+    <h4>Mecanismo concreto</h4>
+    ${mechanism}
+
+    <h4>Métricas de ${victim.pid} en esta ejecución</h4>
+    <ul>
+      <li><strong>Tiempo de espera (TE):</strong> ${te} unidades</li>
+      <li><strong>Tiempo de retorno (TR):</strong> ${tret} unidades</li>
+      <li><strong>Tiempo de respuesta:</strong> ${tresp} unidades</li>
+      <li><strong>Primer uso de CPU:</strong> T = ${victim.firstRunTime} · <strong>Finalización:</strong> T = ${victim.finishTime}</li>
+    </ul>
+
+    <h4>¿Qué es la inanición (starvation)?</h4>
+    <p>La <strong>inanición</strong> es la situación en la que un proceso listo para ejecutarse <em>nunca</em> (o solo tras una espera desproporcionada) recibe CPU, porque el algoritmo de planificación favorece sistemáticamente a otros. No es un bloqueo (no se espera por un recurso) sino una consecuencia de la <em>política de planificación</em>.</p>
+
+    <h4>¿Cómo se mitiga?</h4>
+    <ul>
+      <li><strong>Envejecimiento (aging):</strong> incrementar la prioridad de un proceso a medida que aumenta su tiempo de espera, garantizando que tarde o temprano sea elegido.</li>
+      <li><strong>Algoritmos equitativos:</strong> <em>Round Robin</em> acota el tiempo de respuesta mediante <em>quantum</em>; <em>FCFS</em> respeta estrictamente el orden de llegada.</li>
+      <li><strong>Multinivel con realimentación (MLFQ):</strong> mueve procesos entre colas según su comportamiento, evitando que queden anclados en una cola de baja prioridad.</li>
+    </ul>
+
+    <p style="color:#64748b;font-size:12px;margin-top:14px;">Sugerencia didáctica: prueba el mismo conjunto de procesos con <strong>FCFS</strong> o <strong>Round Robin</strong> y compara el TE de ${victim.pid}.</p>
+  `;
+  openModal(`Análisis: inanición con ${algorithm}`, body, `<button class="btn primary" data-action="close">Entendido</button>`);
 }
 
 // ───────────────── Setup ─────────────────
@@ -994,6 +1242,9 @@ function setup() {
   $('btn-add').onclick = addProcess;
   $('btn-example').onclick = loadExample;
   $('btn-clear').onclick = clearProcesses;
+  $('btn-starvation').onclick = openStarvationConfirmModal;
+  $('btn-about').onclick = showAboutModal;
+
   $('btn-play').onclick = togglePlay;
   $('btn-step').onclick = () => { if (!isRunning) step(); };
   $('btn-back').onclick = stepBack;
@@ -1010,8 +1261,28 @@ function setup() {
     resetSimulation();
   };
 
+  // Modal: cerrar con la ✕, con click fuera del modal y delegación del footer.
+  $('modal-close-btn').onclick = closeModal;
+  $('modal-overlay').onclick = (e) => {
+    if (e.target === $('modal-overlay')) closeModal();
+  };
+  $('modal-footer').addEventListener('click', (e) => {
+    const action = e.target.dataset.action;
+    if (!action) return;
+    if (action === 'close' || action === 'cancel') {
+      closeModal();
+    } else if (action === 'confirm-starvation') {
+      closeModal();
+      loadStarvationCase();
+    }
+  });
+
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'Escape' && $('modal-overlay').classList.contains('open')) {
+      closeModal();
+      return;
+    }
     if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
     else if (e.code === 'ArrowRight') { e.preventDefault(); if (!isRunning) step(); }
     else if (e.code === 'ArrowLeft') { e.preventDefault(); stepBack(); }
