@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Planificación de CPU</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0; padding: 0;
+    background: #f8fafc; color: #1e293b;
+    font-size: 14px; line-height: 1.5;
+  }
+  header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white; padding: 14px 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+  header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  header .subtitle { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+  .shortcuts { font-size: 11px; opacity: 0.85; font-family: monospace; }
+  .shortcuts kbd {
+    background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.3); font-size: 11px;
+  }
+  .algo-bar {
+    background: white; padding: 10px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .algo-group { display: flex; align-items: center; gap: 6px; }
+  .algo-group-label {
+    font-size: 11px; font-weight: 600; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px;
+  }
+  .algo-btn {
+    background: #f1f5f9; border: 1px solid #cbd5e1;
+    border-radius: 6px; padding: 5px 12px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s; color: #475569; font-family: inherit;
+  }
+  .algo-btn:hover { background: #e2e8f0; }
+  .algo-btn.active {
+    background: #3b82f6; color: white; border-color: #2563eb;
+    box-shadow: 0 1px 3px rgba(59,130,246,0.4);
+  }
+  .algo-separator { width: 1px; height: 22px; background: #e2e8f0; margin: 0 6px; }
+  .explanation {
+    background: #eff6ff; border-bottom: 1px solid #dbeafe;
+    padding: 12px 24px; font-size: 13px; color: #1e3a8a;
+  }
+  .explanation strong { color: #1e40af; }
+  .explanation em { color: #1d4ed8; font-style: normal; font-weight: 600; }
+  .container {
+    display: grid; grid-template-columns: 320px 1fr;
+    gap: 16px; padding: 16px 24px;
+  }
+  .panel {
+    background: white; border-radius: 8px;
+    border: 1px solid #e2e8f0; padding: 14px 16px;
+  }
+  .panel h3 {
+    margin: 0 0 10px 0; font-size: 13px; font-weight: 600; color: #334155;
+    display: flex; align-items: center; gap: 8px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .panel h3::before {
+    content: ''; width: 3px; height: 13px; background: #3b82f6; border-radius: 2px;
+  }
+  .panel h3:not(:first-child) { margin-top: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 5px 4px; border-bottom: 1px solid #f1f5f9; }
+  th {
+    font-size: 10px; text-transform: uppercase; color: #64748b;
+    font-weight: 600; letter-spacing: 0.4px;
+  }
+  .proc-table input {
+    border: 1px solid #cbd5e1; border-radius: 4px;
+    padding: 3px 6px; font-size: 13px; font-family: inherit;
+    width: 100%;
+  }
+  .proc-table input:focus {
+    outline: none; border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+  }
+  .proc-table input[type="number"] { width: 56px; }
+  .proc-pid { display: flex; align-items: center; gap: 6px; }
+  .color-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .btn-del {
+    background: none; border: none; color: #94a3b8;
+    cursor: pointer; font-size: 14px; padding: 2px 4px;
+  }
+  .btn-del:hover { color: #dc2626; }
+  .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .btn {
+    background: white; border: 1px solid #cbd5e1;
+    border-radius: 6px; padding: 6px 12px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s; color: #475569; font-family: inherit;
+  }
+  .btn:hover { background: #f8fafc; border-color: #94a3b8; }
+  .btn.primary {
+    background: #3b82f6; color: white; border-color: #2563eb;
+  }
+  .btn.primary:hover { background: #2563eb; }
+  .controls {
+    display: flex; gap: 8px; align-items: center;
+    margin-bottom: 14px; flex-wrap: wrap;
+    padding: 10px 12px; background: #f8fafc; border-radius: 6px;
+  }
+  .ctrl-btn {
+    width: 36px; height: 36px; border-radius: 6px;
+    border: 1px solid #cbd5e1; background: white;
+    cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; font-family: inherit;
+  }
+  .ctrl-btn:hover:not(:disabled) { background: #f1f5f9; }
+  .ctrl-btn.play {
+    background: #10b981; color: white; border-color: #059669;
+    font-size: 12px;
+  }
+  .ctrl-btn.play:hover { background: #059669; }
+  .ctrl-btn.pause {
+    background: #f59e0b; color: white; border-color: #d97706;
+    font-size: 12px;
+  }
+  .ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .speed-control {
+    display: flex; align-items: center; gap: 8px;
+    margin-left: auto;
+  }
+  .speed-control input[type="range"] { width: 110px; }
+  .clock {
+    font-family: 'SF Mono', Consolas, Monaco, monospace;
+    font-size: 16px; font-weight: 700; color: #1e40af;
+    padding: 5px 12px; background: white;
+    border: 1px solid #dbeafe; border-radius: 6px;
+  }
+  .gantt-container {
+    overflow-x: auto; border: 1px solid #e2e8f0;
+    border-radius: 6px; background: #fafbfc; padding: 10px;
+  }
+  .gantt { display: flex; min-height: 38px; align-items: stretch; }
+  .gantt-block {
+    height: 36px; display: flex;
+    align-items: center; justify-content: center;
+    color: white; font-weight: 600; font-size: 12px;
+    border-right: 1px solid rgba(255,255,255,0.35);
+    position: relative; flex-shrink: 0;
+  }
+  .gantt-block.idle {
+    color: #64748b;
+    background: repeating-linear-gradient(45deg,
+      #e2e8f0, #e2e8f0 6px, #cbd5e1 6px, #cbd5e1 12px);
+  }
+  .gantt-block:first-child { border-radius: 4px 0 0 4px; }
+  .gantt-block:last-child {
+    border-radius: 0 4px 4px 0; border-right: none;
+    box-shadow: 0 0 0 2px #1e40af;
+  }
+  .gantt-axis {
+    display: flex; margin-top: 4px;
+    font-size: 10px; color: #64748b;
+    font-family: monospace;
+  }
+  .gantt-tick { text-align: left; flex-shrink: 0; }
+  .gantt-empty {
+    color: #94a3b8; font-size: 13px;
+    padding: 12px 8px; font-style: italic;
+  }
+  .queues { display: flex; flex-direction: column; gap: 8px; }
+  .queue-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 7px 12px; background: #f8fafc;
+    border-radius: 6px; border-left: 3px solid #94a3b8;
+  }
+  .queue-row.priority-0 { border-left-color: #ef4444; }
+  .queue-row.priority-1 { border-left-color: #f59e0b; }
+  .queue-row.priority-2 { border-left-color: #10b981; }
+  .queue-row.cpu { border-left-color: #1e40af; background: #eff6ff; }
+  .queue-row.pending { border-left-color: #94a3b8; background: #fafbfc; }
+  .queue-label {
+    font-size: 12px; font-weight: 600; color: #475569;
+    min-width: 150px;
+  }
+  .queue-items {
+    display: flex; gap: 5px; flex-wrap: wrap; flex: 1;
+  }
+  .queue-pill {
+    padding: 3px 9px; border-radius: 4px; color: white;
+    font-size: 12px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .queue-pill.starving { animation: pulse 1.3s infinite; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.55); }
+    50% { box-shadow: 0 0 0 6px rgba(220,38,38,0); }
+  }
+  .queue-empty { color: #94a3b8; font-size: 12px; font-style: italic; }
+  .metrics-table { font-size: 12px; }
+  .metrics-table td { padding: 5px 4px; }
+  .metrics-table tr.finished td:first-child { color: inherit; }
+  .metrics-table tfoot tr { font-weight: 600; background: #f8fafc; }
+  .metrics-table tfoot td { border-top: 2px solid #cbd5e1; padding-top: 6px; }
+  .banner {
+    border-left: 4px solid #f59e0b; background: #fef3c7;
+    padding: 10px 14px; border-radius: 4px;
+    margin-bottom: 10px; font-size: 13px; color: #78350f;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .banner.starvation {
+    background: #fee2e2; border-left-color: #dc2626; color: #7f1d1d;
+  }
+  .banner.starvation em { color: #991b1b; font-weight: 600; font-style: normal; }
+  .banner-icon { font-size: 16px; flex-shrink: 0; line-height: 1.4; }
+  .banner-body { flex: 1; }
+  .banner-close {
+    background: none; border: none; cursor: pointer;
+    color: inherit; font-size: 16px; opacity: 0.5;
+    padding: 0; line-height: 1;
+  }
+  .banner-close:hover { opacity: 1; }
+  .quantum-input {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding: 8px 10px;
+    background: #f8fafc; border-radius: 6px; font-size: 12px;
+  }
+  .quantum-input input {
+    width: 56px; padding: 3px 8px;
+    border: 1px solid #cbd5e1; border-radius: 4px;
+    font-family: inherit; font-size: 13px;
+  }
+  .quantum-input label { font-weight: 600; color: #475569; }
+  .multi-info {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px; margin-top: 10px;
+    padding: 10px; background: #f8fafc; border-radius: 6px;
+  }
+  .info-item {
+    display: flex; flex-direction: column;
+    padding: 4px 6px; border-radius: 4px;
+  }
+  .info-item.q0 { border-left: 3px solid #ef4444; }
+  .info-item.q1 { border-left: 3px solid #f59e0b; }
+  .info-item.q2 { border-left: 3px solid #10b981; }
+  .info-item.gen { border-left: 3px solid #94a3b8; }
+  .info-label { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .info-value { font-weight: 600; color: #1e293b; font-size: 13px; }
+  .pid-cell { font-weight: 700; }
+  .state-badge {
+    display: inline-block; padding: 2px 7px;
+    border-radius: 3px; font-size: 10px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .state-new { background: #f1f5f9; color: #64748b; }
+  .state-ready { background: #fef3c7; color: #92400e; }
+  .state-ready.starving { background: #fecaca; color: #991b1b; }
+  .state-running { background: #dbeafe; color: #1e40af; }
+  .state-finished { background: #d1fae5; color: #065f46; }
+  @media (max-width: 980px) {
+    .container { grid-template-columns: 1fr; }
+    .speed-control { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Simulador de Planificación de CPU</h1>
+    <div class="subtitle">Herramienta didáctica · Sistemas Operativos</div>
+  </div>
+  <div class="shortcuts">
+    Atajos: <kbd>Espacio</kbd> play/pausa · <kbd>→</kbd> paso · <kbd>←</kbd> retroceder · <kbd>R</kbd> reset
+  </div>
+</header>
+
+<div class="algo-bar">
+  <div class="algo-group">
+    <span class="algo-group-label">No Apropiativos</span>
+    <button class="algo-btn" data-algo="FCFS">FCFS</button>
+    <button class="algo-btn" data-algo="SJF">SJF</button>
+  </div>
+  <div class="algo-separator"></div>
+  <div class="algo-group">
+    <span class="algo-group-label">Apropiativos</span>
+    <button class="algo-btn" data-algo="SRTF">SRTF</button>
+    <button class="algo-btn" data-algo="RR">Round Robin</button>
+  </div>
+  <div class="algo-separator"></div>
+  <div class="algo-group">
+    <span class="algo-group-label">Multinivel</span>
+    <button class="algo-btn" data-algo="MULTI">Colas Multinivel</button>
+  </div>
+</div>
+
+<div class="explanation" id="explanation"></div>
+
+<div class="container">
+  <aside class="panel">
+    <h3>Configuración de procesos</h3>
+    <table class="proc-table">
+      <thead>
+        <tr>
+          <th>PID</th>
+          <th>Llegada</th>
+          <th>Ráfaga</th>
+          <th id="th-queue">Cola</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="proc-tbody"></tbody>
+    </table>
+    <div class="actions">
+      <button class="btn primary" id="btn-add">+ Añadir</button>
+      <button class="btn" id="btn-example">Cargar ejemplo</button>
+      <button class="btn" id="btn-clear">Vaciar</button>
+    </div>
+    <div class="quantum-input" id="quantum-section">
+      <label>Quantum:</label>
+      <input type="number" id="quantum" min="1" max="20" value="4">
+      <span style="color:#64748b;font-size:11px;">unidades de tiempo</span>
+    </div>
+    <div class="multi-info" id="multi-info" style="display:none;">
+      <div class="info-item q0">
+        <span class="info-label">Q0 alta</span>
+        <span class="info-value">RR q=2</span>
+      </div>
+      <div class="info-item q1">
+        <span class="info-label">Q1 media</span>
+        <span class="info-value">RR q=4</span>
+      </div>
+      <div class="info-item q2">
+        <span class="info-label">Q2 baja</span>
+        <span class="info-value">FCFS</span>
+      </div>
+      <div class="info-item gen">
+        <span class="info-label">Preemption</span>
+        <span class="info-value">Entre colas</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="panel">
+    <div id="banners"></div>
+    <div class="controls">
+      <button class="ctrl-btn" id="btn-back" title="Retroceder un paso (←)">⏮</button>
+      <button class="ctrl-btn play" id="btn-play" title="Play/Pausa (Espacio)">▶</button>
+      <button class="ctrl-btn" id="btn-step" title="Avanzar un paso (→)">⏭</button>
+      <button class="ctrl-btn" id="btn-reset" title="Reiniciar (R)">↺</button>
+      <div class="clock" id="clock">T = 0</div>
+      <div class="speed-control">
+        <label style="font-size:12px;color:#64748b;">Velocidad:</label>
+        <input type="range" id="speed" min="100" max="2000" step="100" value="800">
+        <span id="speed-label" style="font-size:11px;font-family:monospace;color:#475569;min-width:54px;">800 ms</span>
+      </div>
+    </div>
+
+    <h3>Diagrama de Gantt</h3>
+    <div class="gantt-container">
+      <div class="gantt" id="gantt"></div>
+      <div class="gantt-axis" id="gantt-axis"></div>
+    </div>
+
+    <h3>Estado de las colas</h3>
+    <div class="queues" id="queues"></div>
+
+    <h3>Métricas por proceso</h3>
+    <table class="metrics-table">
+      <thead>
+        <tr>
+          <th>PID</th>
+          <th>Estado</th>
+          <th title="Tiempo de Espera">TE</th>
+          <th title="Tiempo de Retorno">TR</th>
+          <th title="Tiempo de Respuesta">T.Resp</th>
+          <th title="Tiempo restante">Resta</th>
+        </tr>
+      </thead>
+      <tbody id="metrics-tbody"></tbody>
+      <tfoot id="metrics-tfoot"></tfoot>
+    </table>
+    <div style="font-size:11px;color:#64748b;margin-top:6px;">
+      <strong>TE</strong> = Tiempo de Espera (TR − Ráfaga) · 
+      <strong>TR</strong> = Tiempo de Retorno (Finalización − Llegada) · 
+      <strong>T.Resp</strong> = Tiempo de Respuesta (Primer uso CPU − Llegada)
+    </div>
+  </main>
+</div>
+
+<script>
+'use strict';
+
+const COLORS = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16'];
+const IDLE_COLOR = '#cbd5e1';
+const BLOCK_W = 34; // px per time unit in Gantt
+
+const EXPLANATIONS = {
+  FCFS: `<strong>FCFS (First-Come, First-Served · No apropiativo):</strong> Los procesos se atienden estrictamente en el orden de llegada a la cola de listos. Una vez que un proceso obtiene la CPU, no la libera hasta terminar. <em>Ventajas:</em> simple y predecible. <em>Inconvenientes:</em> <em>efecto convoy</em> — un proceso largo retrasa a todos los siguientes y penaliza el tiempo medio de espera.`,
+  SJF: `<strong>SJF (Shortest Job First · No apropiativo):</strong> Cuando la CPU queda libre, se selecciona de entre los procesos listos aquel con la <em>ráfaga total más corta</em>. <em>Ventajas:</em> minimiza el tiempo medio de espera (óptimo entre los no apropiativos). <em>Inconvenientes:</em> requiere conocer la ráfaga de antemano (en la práctica se estima) y puede provocar <em>inanición</em> de procesos largos.`,
+  SRTF: `<strong>SRTF (Shortest Remaining Time First · Apropiativo):</strong> Versión expulsiva de SJF. En cada unidad de tiempo se compara el tiempo restante del proceso en CPU con el de los listos; si hay alguno menor, se le cede la CPU. <em>Ventajas:</em> óptimo en tiempo medio de espera. <em>Inconvenientes:</em> mayor sobrecarga por cambios de contexto y riesgo de <em>inanición</em>.`,
+  RR: `<strong>Round Robin · Apropiativo:</strong> Cada proceso recibe un <em>quantum</em> fijo de CPU; al agotarlo vuelve al final de la cola de listos. <em>Ventajas:</em> tiempo de respuesta acotado, justicia entre procesos, ideal para sistemas interactivos. <em>Sensible al quantum:</em> muy pequeño produce excesivos cambios de contexto; muy grande degenera en FCFS.`,
+  MULTI: `<strong>Planificación Multinivel (Multilevel Queue · Apropiativo entre colas):</strong> Los procesos se asignan a una cola según su naturaleza o prioridad y cada cola usa su propia política. Aquí: <em>Q0</em> RR q=2, <em>Q1</em> RR q=4, <em>Q2</em> FCFS. Una cola de menor prioridad solo recibe CPU cuando las superiores están vacías; un proceso de cola alta <em>expulsa</em> al de cola baja. <em>Sin envejecimiento (aging),</em> los procesos en Q2 pueden sufrir <em>inanición</em>.`
+};
+
+const EXAMPLES = {
+  FCFS: [
+    { pid:'P1', arrivalTime:0, burstTime:7, queueLevel:0 },
+    { pid:'P2', arrivalTime:2, burstTime:4, queueLevel:0 },
+    { pid:'P3', arrivalTime:4, burstTime:1, queueLevel:0 },
+    { pid:'P4', arrivalTime:5, burstTime:4, queueLevel:0 },
+  ],
+  SJF: [
+    { pid:'P1', arrivalTime:0, burstTime:7, queueLevel:0 },
+    { pid:'P2', arrivalTime:2, burstTime:4, queueLevel:0 },
+    { pid:'P3', arrivalTime:4, burstTime:1, queueLevel:0 },
+    { pid:'P4', arrivalTime:5, burstTime:4, queueLevel:0 },
+  ],
+  SRTF: [
+    { pid:'P1', arrivalTime:0, burstTime:8, queueLevel:0 },
+    { pid:'P2', arrivalTime:1, burstTime:4, queueLevel:0 },
+    { pid:'P3', arrivalTime:2, burstTime:9, queueLevel:0 },
+    { pid:'P4', arrivalTime:3, burstTime:5, queueLevel:0 },
+  ],
+  RR: [
+    { pid:'P1', arrivalTime:0, burstTime:5, queueLevel:0 },
+    { pid:'P2', arrivalTime:1, burstTime:4, queueLevel:0 },
+    { pid:'P3', arrivalTime:2, burstTime:2, queueLevel:0 },
+    { pid:'P4', arrivalTime:3, burstTime:8, queueLevel:0 },
+  ],
+  MULTI: [
+    { pid:'P1', arrivalTime:0, burstTime:3, queueLevel:0 },
+    { pid:'P2', arrivalTime:1, burstTime:5, queueLevel:1 },
+    { pid:'P3', arrivalTime:2, burstTime:6, queueLevel:2 },
+    { pid:'P4', arrivalTime:5, burstTime:3, queueLevel:0 },
+    { pid:'P5', arrivalTime:9, burstTime:2, queueLevel:0 },
+    { pid:'P6', arrivalTime:14, burstTime:2, queueLevel:0 },
+    { pid:'P7', arrivalTime:18, burstTime:3, queueLevel:0 },
+  ],
+};
+
+// ───────────────── State ─────────────────
+let processes = [];
+let algorithm = 'FCFS';
+let quantum = 4;
+let runtime = null;
+let isRunning = false;
+let speed = 800;
+let timer = null;
+let banners = [];
+
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const $ = (id) => document.getElementById(id);
+
+function getColor(pid) {
+  const m = String(pid).match(/\d+/);
+  if (m) return COLORS[(parseInt(m[0]) - 1 + COLORS.length) % COLORS.length];
+  let h = 0;
+  for (let i = 0; i < pid.length; i++) h = (h * 31 + pid.charCodeAt(i)) | 0;
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+
+function getQuantumFor(p) {
+  if (algorithm === 'RR') return quantum;
+  if (algorithm === 'MULTI') {
+    if (p.queueLevel === 0) return 2;
+    if (p.queueLevel === 1) return 4;
+    return Infinity;
+  }
+  return Infinity;
+}
+
+function starvationThreshold(p) {
+  return Math.max(15, 2 * p.burstTime);
+}
+
+// ───────────────── Runtime / Simulation ─────────────────
+function initRuntime() {
+  if (timer) { clearInterval(timer); timer = null; }
+  isRunning = false;
+  banners = [];
+  runtime = {
+    currentTime: 0,
+    procs: processes.map(p => ({
+      pid: p.pid,
+      arrivalTime: +p.arrivalTime,
+      burstTime: +p.burstTime,
+      queueLevel: +p.queueLevel || 0,
+      remaining: +p.burstTime,
+      state: 'new',
+      firstRunTime: null,
+      finishTime: null,
+      ticksWithoutRun: 0,
+      starvationAlerted: false,
+      color: getColor(p.pid)
+    })),
+    runningPid: null,
+    readyQueue: [],
+    queues: [[], [], []],
+    quantumUsed: 0,
+    gantt: [],
+    snapshots: []
+  };
+  updatePlayButton();
+}
+
+function getProc(pid) { return runtime.procs.find(p => p.pid === pid); }
+
+function saveSnapshot() {
+  runtime.snapshots.push({
+    currentTime: runtime.currentTime,
+    procs: clone(runtime.procs),
+    runningPid: runtime.runningPid,
+    readyQueue: [...runtime.readyQueue],
+    queues: runtime.queues.map(q => [...q]),
+    quantumUsed: runtime.quantumUsed,
+    gantt: [...runtime.gantt],
+    banners: clone(banners)
+  });
+  if (runtime.snapshots.length > 500) runtime.snapshots.shift();
+}
+
+function restoreSnapshot() {
+  const snap = runtime.snapshots.pop();
+  if (!snap) return false;
+  runtime.currentTime = snap.currentTime;
+  runtime.procs = snap.procs;
+  runtime.runningPid = snap.runningPid;
+  runtime.readyQueue = snap.readyQueue;
+  runtime.queues = snap.queues;
+  runtime.quantumUsed = snap.quantumUsed;
+  runtime.gantt = snap.gantt;
+  banners = snap.banners;
+  return true;
+}
+
+function processArrivals() {
+  runtime.procs.forEach(p => {
+    if (p.state === 'new' && p.arrivalTime === runtime.currentTime) {
+      p.state = 'ready';
+      if (algorithm === 'MULTI') runtime.queues[p.queueLevel].push(p.pid);
+      else runtime.readyQueue.push(p.pid);
+    }
+  });
+}
+
+function schedule() {
+  if (algorithm === 'FCFS' || algorithm === 'SJF') {
+    // Non-preemptive
+    if (!runtime.runningPid && runtime.readyQueue.length > 0) {
+      let pid;
+      if (algorithm === 'FCFS') {
+        pid = runtime.readyQueue.shift();
+      } else {
+        // SJF: pick min burstTime (tiebreak: arrival, then pid order in array)
+        runtime.readyQueue.sort((a, b) => {
+          const pa = getProc(a), pb = getProc(b);
+          if (pa.burstTime !== pb.burstTime) return pa.burstTime - pb.burstTime;
+          return pa.arrivalTime - pb.arrivalTime;
+        });
+        pid = runtime.readyQueue.shift();
+      }
+      runtime.runningPid = pid;
+      getProc(pid).state = 'running';
+    }
+  } else if (algorithm === 'SRTF') {
+    // Preemptive on every tick
+    const cand = [...runtime.readyQueue];
+    if (runtime.runningPid) cand.push(runtime.runningPid);
+    if (cand.length > 0) {
+      cand.sort((a, b) => {
+        const pa = getProc(a), pb = getProc(b);
+        if (pa.remaining !== pb.remaining) return pa.remaining - pb.remaining;
+        return pa.arrivalTime - pb.arrivalTime;
+      });
+      const newPid = cand[0];
+      if (newPid !== runtime.runningPid) {
+        if (runtime.runningPid) {
+          getProc(runtime.runningPid).state = 'ready';
+          runtime.readyQueue.push(runtime.runningPid);
+        }
+        runtime.readyQueue = runtime.readyQueue.filter(p => p !== newPid);
+        runtime.runningPid = newPid;
+        getProc(newPid).state = 'running';
+      }
+    }
+  } else if (algorithm === 'RR') {
+    if (!runtime.runningPid && runtime.readyQueue.length > 0) {
+      const pid = runtime.readyQueue.shift();
+      runtime.runningPid = pid;
+      getProc(pid).state = 'running';
+      runtime.quantumUsed = 0;
+    }
+  } else if (algorithm === 'MULTI') {
+    // Preempt if higher priority queue has process
+    if (runtime.runningPid) {
+      const r = getProc(runtime.runningPid);
+      let preempt = false;
+      for (let q = 0; q < r.queueLevel; q++) {
+        if (runtime.queues[q].length > 0) { preempt = true; break; }
+      }
+      if (preempt) {
+        r.state = 'ready';
+        runtime.queues[r.queueLevel].push(r.pid);
+        runtime.runningPid = null;
+        runtime.quantumUsed = 0;
+      }
+    }
+    if (!runtime.runningPid) {
+      for (let q = 0; q < 3; q++) {
+        if (runtime.queues[q].length > 0) {
+          const pid = runtime.queues[q].shift();
+          runtime.runningPid = pid;
+          getProc(pid).state = 'running';
+          runtime.quantumUsed = 0;
+          break;
+        }
+      }
+    }
+  }
+}
+
+function step() {
+  if (!runtime.procs.length || allFinished()) { pause(); return; }
+  saveSnapshot();
+
+  processArrivals();
+  schedule();
+
+  if (runtime.runningPid) {
+    const p = getProc(runtime.runningPid);
+    if (p.firstRunTime === null) p.firstRunTime = runtime.currentTime;
+    p.remaining -= 1;
+    p.ticksWithoutRun = 0;
+    runtime.gantt.push({ pid: p.pid, t: runtime.currentTime, color: p.color });
+    runtime.quantumUsed += 1;
+
+    if (p.remaining === 0) {
+      p.state = 'finished';
+      p.finishTime = runtime.currentTime + 1;
+      runtime.runningPid = null;
+      runtime.quantumUsed = 0;
+    } else {
+      const q = getQuantumFor(p);
+      if (q !== Infinity && runtime.quantumUsed >= q) {
+        p.state = 'ready';
+        if (algorithm === 'MULTI') runtime.queues[p.queueLevel].push(p.pid);
+        else runtime.readyQueue.push(p.pid);
+        runtime.runningPid = null;
+        runtime.quantumUsed = 0;
+      }
+    }
+  } else {
+    runtime.gantt.push({ pid: 'IDLE', t: runtime.currentTime, color: IDLE_COLOR });
+  }
+
+  runtime.currentTime += 1;
+
+  runtime.procs.forEach(p => {
+    if (p.state === 'ready') p.ticksWithoutRun += 1;
+  });
+
+  detectStarvation();
+
+  if (allFinished()) pause();
+  render();
+}
+
+function allFinished() {
+  return runtime.procs.length > 0 && runtime.procs.every(p => p.state === 'finished');
+}
+
+function detectStarvation() {
+  runtime.procs.forEach(p => {
+    if (p.state === 'ready' && !p.starvationAlerted) {
+      if (p.ticksWithoutRun >= starvationThreshold(p)) {
+        p.starvationAlerted = true;
+        addStarvationBanner(p);
+      }
+    }
+  });
+}
+
+function addStarvationBanner(p) {
+  let msg;
+  if (algorithm === 'MULTI') {
+    msg = `<strong>⚠️ Inanición detectada en ${p.pid}</strong> (cola Q${p.queueLevel}): lleva <em>${p.ticksWithoutRun} unidades</em> en espera sin recibir CPU. En multinivel, los procesos de colas inferiores quedan pospuestos mientras lleguen procesos a colas superiores. Sin <em>envejecimiento (aging)</em>, la espera puede ser indefinida. <strong>Acción didáctica:</strong> reinicia con otra configuración donde las colas superiores se vacíen periódicamente para evitarlo.`;
+  } else if (algorithm === 'SJF' || algorithm === 'SRTF') {
+    msg = `<strong>⚠️ Inanición detectada en ${p.pid}</strong>: lleva <em>${p.ticksWithoutRun} unidades</em> en espera. En ${algorithm}, los procesos largos pueden ser pospuestos indefinidamente si siguen llegando otros más cortos. <strong>Acción didáctica:</strong> reinicia con una configuración donde no entren continuamente procesos de menor ráfaga.`;
+  } else {
+    msg = `<strong>⚠️ Espera prolongada en ${p.pid}</strong>: lleva ${p.ticksWithoutRun} unidades en espera.`;
+  }
+  banners.push({ type: 'starvation', html: msg });
+}
+
+// ───────────────── Controls ─────────────────
+function play() {
+  if (!runtime.procs.length || allFinished()) return;
+  isRunning = true;
+  timer = setInterval(step, speed);
+  updatePlayButton();
+}
+
+function pause() {
+  isRunning = false;
+  if (timer) { clearInterval(timer); timer = null; }
+  updatePlayButton();
+}
+
+function togglePlay() { isRunning ? pause() : play(); }
+
+function stepBack() {
+  if (isRunning) pause();
+  if (restoreSnapshot()) render();
+}
+
+function resetSimulation() {
+  pause();
+  initRuntime();
+  render();
+}
+
+function updatePlayButton() {
+  const b = $('btn-play');
+  if (isRunning) {
+    b.textContent = '⏸'; b.classList.remove('play'); b.classList.add('pause');
+  } else {
+    b.textContent = '▶'; b.classList.remove('pause'); b.classList.add('play');
+  }
+}
+
+// ───────────────── Rendering ─────────────────
+function render() {
+  $('clock').textContent = `T = ${runtime.currentTime}`;
+  renderGantt();
+  renderQueues();
+  renderMetrics();
+  renderBanners();
+  renderControlButtons();
+}
+
+function renderGantt() {
+  const g = $('gantt');
+  const ax = $('gantt-axis');
+  g.innerHTML = ''; ax.innerHTML = '';
+
+  if (runtime.gantt.length === 0) {
+    g.innerHTML = '<div class="gantt-empty">El diagrama se construirá según avance la simulación. Pulsa ▶ o ⏭ para empezar.</div>';
+    return;
+  }
+
+  const groups = [];
+  for (const seg of runtime.gantt) {
+    const last = groups[groups.length - 1];
+    if (last && last.pid === seg.pid) last.duration += 1;
+    else groups.push({ pid: seg.pid, color: seg.color, start: seg.t, duration: 1 });
+  }
+
+  groups.forEach(grp => {
+    const block = document.createElement('div');
+    block.className = 'gantt-block' + (grp.pid === 'IDLE' ? ' idle' : '');
+    block.style.width = `${grp.duration * BLOCK_W}px`;
+    if (grp.pid !== 'IDLE') block.style.background = grp.color;
+    block.textContent = grp.pid === 'IDLE' ? '—' : grp.pid;
+    block.title = `${grp.pid} · t=${grp.start} a t=${grp.start + grp.duration}`;
+    g.appendChild(block);
+  });
+
+  for (let t = 0; t <= runtime.currentTime; t++) {
+    const tick = document.createElement('div');
+    tick.className = 'gantt-tick';
+    tick.style.width = `${BLOCK_W}px`;
+    tick.textContent = t;
+    ax.appendChild(tick);
+  }
+
+  g.parentElement.scrollLeft = g.scrollWidth;
+}
+
+function renderQueues() {
+  const c = $('queues');
+  c.innerHTML = '';
+
+  // CPU
+  const cpuRow = document.createElement('div');
+  cpuRow.className = 'queue-row cpu';
+  let cpuItems;
+  if (runtime.runningPid) {
+    const p = getProc(runtime.runningPid);
+    let extra = '';
+    const q = getQuantumFor(p);
+    if (q !== Infinity) extra = ` <span style="opacity:0.85;">(q ${runtime.quantumUsed}/${q})</span>`;
+    cpuItems = `<span class="queue-pill" style="background:${p.color}">${p.pid} · resta ${p.remaining}${extra}</span>`;
+  } else {
+    cpuItems = '<span class="queue-empty">CPU inactiva</span>';
+  }
+  cpuRow.innerHTML = `<span class="queue-label">🖥️ CPU</span><div class="queue-items">${cpuItems}</div>`;
+  c.appendChild(cpuRow);
+
+  // Ready queues
+  if (algorithm === 'MULTI') {
+    const labels = ['Q0 · RR q=2 (alta)', 'Q1 · RR q=4 (media)', 'Q2 · FCFS (baja)'];
+    runtime.queues.forEach((q, idx) => {
+      const row = document.createElement('div');
+      row.className = `queue-row priority-${idx}`;
+      const items = q.length === 0
+        ? '<span class="queue-empty">vacía</span>'
+        : q.map(pid => {
+            const p = getProc(pid);
+            const starv = p.starvationAlerted ? ' starving' : '';
+            return `<span class="queue-pill${starv}" style="background:${p.color}">${pid} · resta ${p.remaining}</span>`;
+          }).join('');
+      row.innerHTML = `<span class="queue-label">${labels[idx]}</span><div class="queue-items">${items}</div>`;
+      c.appendChild(row);
+    });
+  } else {
+    const row = document.createElement('div');
+    row.className = 'queue-row';
+    const items = runtime.readyQueue.length === 0
+      ? '<span class="queue-empty">vacía</span>'
+      : runtime.readyQueue.map(pid => {
+          const p = getProc(pid);
+          const starv = p.starvationAlerted ? ' starving' : '';
+          return `<span class="queue-pill${starv}" style="background:${p.color}">${pid} · resta ${p.remaining}</span>`;
+        }).join('');
+    row.innerHTML = `<span class="queue-label">Cola de listos</span><div class="queue-items">${items}</div>`;
+    c.appendChild(row);
+  }
+
+  // Pending arrivals
+  const pend = runtime.procs.filter(p => p.state === 'new');
+  if (pend.length > 0) {
+    const row = document.createElement('div');
+    row.className = 'queue-row pending';
+    const items = pend.map(p =>
+      `<span class="queue-pill" style="background:${p.color};opacity:0.6;">${p.pid} (llega T=${p.arrivalTime})</span>`
+    ).join('');
+    row.innerHTML = `<span class="queue-label">Pendientes de llegar</span><div class="queue-items">${items}</div>`;
+    c.appendChild(row);
+  }
+}
+
+function renderMetrics() {
+  const tb = $('metrics-tbody');
+  const tf = $('metrics-tfoot');
+  tb.innerHTML = ''; tf.innerHTML = '';
+
+  let sums = { te: 0, tr: 0, tresp: 0, count: 0 };
+
+  runtime.procs.forEach(p => {
+    let te = '—', tret = '—', tresp = '—';
+    if (p.state === 'finished') {
+      tret = p.finishTime - p.arrivalTime;
+      te = tret - p.burstTime;
+      tresp = p.firstRunTime - p.arrivalTime;
+      sums.te += te; sums.tr += tret; sums.tresp += tresp; sums.count++;
+    } else if (p.firstRunTime !== null) {
+      tresp = p.firstRunTime - p.arrivalTime;
+    }
+    const starv = p.starvationAlerted && p.state === 'ready' ? ' starving' : '';
+    const stateMap = { new: 'pdte', ready: 'listo', running: 'CPU', finished: 'fin' };
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="pid-cell" style="color:${p.color}">${p.pid}</td>
+      <td><span class="state-badge state-${p.state}${starv}">${stateMap[p.state]}</span></td>
+      <td>${te}</td><td>${tret}</td><td>${tresp}</td><td>${p.remaining}</td>`;
+    tb.appendChild(tr);
+  });
+
+  if (sums.count > 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td colspan="2">Promedios (${sums.count} finalizado${sums.count === 1 ? '' : 's'})</td>
+      <td>${(sums.te / sums.count).toFixed(2)}</td>
+      <td>${(sums.tr / sums.count).toFixed(2)}</td>
+      <td>${(sums.tresp / sums.count).toFixed(2)}</td>
+      <td>—</td>`;
+    tf.appendChild(tr);
+  }
+}
+
+function renderBanners() {
+  const c = $('banners');
+  c.innerHTML = '';
+  banners.forEach((b, i) => {
+    const div = document.createElement('div');
+    div.className = `banner ${b.type}`;
+    div.innerHTML = `<span class="banner-icon">${b.type === 'starvation' ? '⚠️' : 'ℹ️'}</span><div class="banner-body">${b.html}</div><button class="banner-close" data-i="${i}" title="Cerrar">✕</button>`;
+    c.appendChild(div);
+  });
+  c.querySelectorAll('.banner-close').forEach(btn => {
+    btn.onclick = (e) => {
+      banners.splice(+e.target.dataset.i, 1);
+      renderBanners();
+    };
+  });
+}
+
+function renderControlButtons() {
+  $('btn-back').disabled = runtime.snapshots.length === 0;
+  $('btn-step').disabled = allFinished() || runtime.procs.length === 0;
+  $('btn-play').disabled = allFinished() || runtime.procs.length === 0;
+}
+
+// ───────────────── Process Table ─────────────────
+function renderProcessTable() {
+  const tb = $('proc-tbody');
+  const thQ = $('th-queue');
+  thQ.style.display = algorithm === 'MULTI' ? '' : 'none';
+  tb.innerHTML = '';
+
+  processes.forEach((p, idx) => {
+    const tr = document.createElement('tr');
+    const color = getColor(p.pid);
+    const qCell = `<td style="${algorithm === 'MULTI' ? '' : 'display:none;'}"><input type="number" value="${p.queueLevel}" min="0" max="2" data-i="${idx}" data-f="queueLevel"></td>`;
+    tr.innerHTML = `
+      <td>
+        <div class="proc-pid">
+          <span class="color-dot" style="background:${color}"></span>
+          <input type="text" value="${p.pid}" data-i="${idx}" data-f="pid" maxlength="8" style="width:62px;">
+        </div>
+      </td>
+      <td><input type="number" value="${p.arrivalTime}" min="0" max="999" data-i="${idx}" data-f="arrivalTime"></td>
+      <td><input type="number" value="${p.burstTime}" min="1" max="999" data-i="${idx}" data-f="burstTime"></td>
+      ${qCell}
+      <td><button class="btn-del" data-i="${idx}" title="Eliminar">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+
+  tb.querySelectorAll('input').forEach(inp => {
+    inp.onchange = (e) => {
+      const i = +e.target.dataset.i;
+      const f = e.target.dataset.f;
+      let v = e.target.value;
+      if (f !== 'pid') v = Math.max(f === 'burstTime' ? 1 : 0, parseInt(v) || 0);
+      if (f === 'queueLevel') v = Math.min(2, Math.max(0, v));
+      processes[i][f] = v;
+      resetSimulation();
+      renderProcessTable();
+    };
+  });
+  tb.querySelectorAll('.btn-del').forEach(btn => {
+    btn.onclick = (e) => {
+      processes.splice(+e.target.dataset.i, 1);
+      resetSimulation();
+      renderProcessTable();
+    };
+  });
+}
+
+function addProcess() {
+  const nums = processes.map(p => {
+    const m = String(p.pid).match(/\d+/);
+    return m ? parseInt(m[0]) : 0;
+  });
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  processes.push({ pid: `P${next}`, arrivalTime: 0, burstTime: 5, queueLevel: 0 });
+  resetSimulation();
+  renderProcessTable();
+}
+
+function loadExample() {
+  processes = clone(EXAMPLES[algorithm]);
+  resetSimulation();
+  renderProcessTable();
+}
+
+function clearProcesses() {
+  processes = [];
+  resetSimulation();
+  renderProcessTable();
+}
+
+function setAlgorithm(algo) {
+  algorithm = algo;
+  document.querySelectorAll('.algo-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.algo === algo);
+  });
+  $('explanation').innerHTML = EXPLANATIONS[algo];
+  $('quantum-section').style.display = (algo === 'RR') ? 'flex' : 'none';
+  $('multi-info').style.display = (algo === 'MULTI') ? 'grid' : 'none';
+  resetSimulation();
+  renderProcessTable();
+}
+
+// ───────────────── Setup ─────────────────
+function setup() {
+  document.querySelectorAll('.algo-btn').forEach(b => {
+    b.onclick = () => setAlgorithm(b.dataset.algo);
+  });
+  $('btn-add').onclick = addProcess;
+  $('btn-example').onclick = loadExample;
+  $('btn-clear').onclick = clearProcesses;
+  $('btn-play').onclick = togglePlay;
+  $('btn-step').onclick = () => { if (!isRunning) step(); };
+  $('btn-back').onclick = stepBack;
+  $('btn-reset').onclick = resetSimulation;
+
+  $('speed').oninput = (e) => {
+    speed = parseInt(e.target.value);
+    $('speed-label').textContent = `${speed} ms`;
+    if (isRunning) { clearInterval(timer); timer = setInterval(step, speed); }
+  };
+  $('quantum').onchange = (e) => {
+    quantum = Math.max(1, parseInt(e.target.value) || 1);
+    e.target.value = quantum;
+    resetSimulation();
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+    else if (e.code === 'ArrowRight') { e.preventDefault(); if (!isRunning) step(); }
+    else if (e.code === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+    else if (e.code === 'KeyR') { e.preventDefault(); resetSimulation(); }
+  });
+}
+
+// ───────────────── Init ─────────────────
+processes = clone(EXAMPLES.FCFS);
+setAlgorithm('FCFS');
+setup();
+render();
+</script>
+</body>
+</html>
