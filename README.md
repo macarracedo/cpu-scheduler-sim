@@ -2,6 +2,10 @@
 
 Herramienta interactiva y didáctica para visualizar y entender algoritmos de planificación de procesos en sistemas operativos.
 
+## 🚀 Despliegue
+
+La aplicación se encuentra desplegada y lista para su uso en: **[simulador.lia2.org](https://simulador.lia2.org)**
+
 ## 👤 Autor
 
 **Manuel Alonso Carracedo**
