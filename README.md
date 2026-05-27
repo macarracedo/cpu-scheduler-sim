@@ -1,4 +1,5 @@
 # Simulador de Planificación de CPU
+[![DOI](https://zenodo.org/badge/1245016293.svg)](https://doi.org/10.5281/zenodo.20410548)
 
 Herramienta interactiva y didáctica para visualizar y entender algoritmos de planificación de procesos en sistemas operativos.
 
