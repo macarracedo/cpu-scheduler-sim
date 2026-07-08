@@ -3,23 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulador de Planificación de CPU</title>
+<title>EPSSim · Aprendiendo planificación del procesador mediante la simulación</title>
 <style>
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0; padding: 0;
-    background: #f8fafc; color: #1e293b;
+    background: #e9eef5; color: #243240;
     font-size: 14px; line-height: 1.5;
   }
   header {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    background: #13294b;
+    border-bottom: 5px solid #ee7d24;
     color: white; padding: 14px 24px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
   }
-  header h1 { margin: 0; font-size: 20px; font-weight: 600; }
-  header .subtitle { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand svg { flex-shrink: 0; }
+  header h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px; }
+  header .subtitle { font-size: 12px; color: #eaf2fc; margin-top: 2px; }
   .header-right { display: flex; align-items: center; gap: 14px; }
   .shortcuts { font-size: 11px; opacity: 0.85; font-family: monospace; }
   .shortcuts kbd {
@@ -53,16 +55,16 @@
   }
   .algo-btn:hover { background: #e2e8f0; }
   .algo-btn.active {
-    background: #3b82f6; color: white; border-color: #2563eb;
-    box-shadow: 0 1px 3px rgba(59,130,246,0.4);
+    background: #ee7d24; color: white; border-color: #d96c15;
+    box-shadow: 0 1px 3px rgba(238,125,36,0.4);
   }
   .algo-separator { width: 1px; height: 22px; background: #e2e8f0; margin: 0 6px; }
   .explanation {
-    background: #eff6ff; border-bottom: 1px solid #dbeafe;
-    padding: 12px 24px; font-size: 13px; color: #1e3a8a;
+    background: #eef2f7; border-bottom: 1px solid #d7deea;
+    padding: 12px 24px; font-size: 13px; color: #13294b;
   }
-  .explanation strong { color: #1e40af; }
-  .explanation em { color: #1d4ed8; font-style: normal; font-weight: 600; }
+  .explanation strong { color: #13294b; }
+  .explanation em { color: #1f5aa0; font-style: normal; font-weight: 600; }
   .container {
     display: grid; grid-template-columns: 320px 1fr;
     gap: 16px; padding: 16px 24px;
@@ -77,7 +79,7 @@
     text-transform: uppercase; letter-spacing: 0.4px;
   }
   .panel h3::before {
-    content: ''; width: 3px; height: 13px; background: #3b82f6; border-radius: 2px;
+    content: ''; width: 3px; height: 13px; background: #ee7d24; border-radius: 2px;
   }
   .panel h3:not(:first-child) { margin-top: 18px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -92,8 +94,8 @@
     width: 100%;
   }
   .proc-table input:focus {
-    outline: none; border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+    outline: none; border-color: #ee7d24;
+    box-shadow: 0 0 0 2px rgba(238,125,36,0.2);
   }
   .proc-table input[type="number"] { width: 56px; }
   .proc-pid { display: flex; align-items: center; gap: 6px; }
@@ -111,8 +113,8 @@
     transition: all 0.15s; color: #475569; font-family: inherit;
   }
   .btn:hover { background: #f8fafc; border-color: #94a3b8; }
-  .btn.primary { background: #3b82f6; color: white; border-color: #2563eb; }
-  .btn.primary:hover { background: #2563eb; }
+  .btn.primary { background: #ee7d24; color: white; border-color: #d96c15; }
+  .btn.primary:hover { background: #d96c15; }
   .btn.warn {
     background: #fef3c7; color: #92400e; border-color: #fcd34d;
   }
@@ -142,9 +144,9 @@
   .speed-control input[type="range"] { width: 110px; }
   .clock {
     font-family: 'SF Mono', Consolas, Monaco, monospace;
-    font-size: 16px; font-weight: 700; color: #1e40af;
+    font-size: 16px; font-weight: 700; color: #13294b;
     padding: 5px 12px; background: white;
-    border: 1px solid #dbeafe; border-radius: 6px;
+    border: 1px solid #c9d6e8; border-radius: 6px;
   }
   .gantt-container {
     overflow-x: auto; border: 1px solid #e2e8f0;
@@ -166,7 +168,7 @@
   .gantt-block:first-child { border-radius: 4px 0 0 4px; }
   .gantt-block:last-child {
     border-radius: 0 4px 4px 0; border-right: none;
-    box-shadow: 0 0 0 2px #1e40af;
+    box-shadow: 0 0 0 2px #ee7d24;
   }
   .gantt-axis { display: flex; margin-top: 4px; font-size: 10px; color: #64748b; font-family: monospace; }
   .gantt-tick { text-align: left; flex-shrink: 0; }
@@ -180,7 +182,7 @@
   .queue-row.priority-0 { border-left-color: #ef4444; }
   .queue-row.priority-1 { border-left-color: #f59e0b; }
   .queue-row.priority-2 { border-left-color: #10b981; }
-  .queue-row.cpu { border-left-color: #1e40af; background: #eff6ff; }
+  .queue-row.cpu { border-left-color: #ee7d24; background: #fdf3ea; }
   .queue-row.pending { border-left-color: #94a3b8; background: #fafbfc; }
   .queue-label { font-size: 12px; font-weight: 600; color: #475569; min-width: 150px; }
   .queue-items { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
@@ -248,7 +250,7 @@
   .state-new { background: #f1f5f9; color: #64748b; }
   .state-ready { background: #fef3c7; color: #92400e; }
   .state-ready.starving { background: #fecaca; color: #991b1b; }
-  .state-running { background: #dbeafe; color: #1e40af; }
+  .state-running { background: #fdeadd; color: #9c4f0e; }
   .state-finished { background: #d1fae5; color: #065f46; }
 
   /* "¿Qué ha pasado?" button */
@@ -313,16 +315,16 @@
     line-height: 1.55;
   }
   .modal-body h4 {
-    margin: 16px 0 6px; font-size: 13px; color: #1e40af; font-weight: 600;
+    margin: 16px 0 6px; font-size: 13px; color: #13294b; font-weight: 600;
   }
   .modal-body h4:first-child { margin-top: 0; }
   .modal-body p { margin: 6px 0; }
   .modal-body ul { padding-left: 20px; margin: 6px 0; }
   .modal-body li { margin: 4px 0; }
-  .modal-body a { color: #2563eb; text-decoration: none; }
+  .modal-body a { color: #1f5aa0; text-decoration: none; }
   .modal-body a:hover { text-decoration: underline; }
   .modal-body strong { color: #0f172a; }
-  .modal-body em { font-style: italic; color: #1e3a8a; }
+  .modal-body em { font-style: italic; color: #13294b; }
   .modal-footer {
     display: flex; gap: 8px; justify-content: flex-end;
     padding: 12px 22px;
@@ -344,8 +346,126 @@
     color: #64748b; min-width: 100px; font-size: 12px;
   }
 
+  /* ───────── EPSSim: pestañas y comparador ───────── */
+  .tab-bar {
+    background: white; border-bottom: 1px solid #d7deea;
+    padding: 8px 24px; display: flex; gap: 8px; align-items: center;
+  }
+  .tab-btn {
+    background: #eef2f7; border: 1px solid #c9d6e8; border-radius: 6px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    color: #36424f; cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .tab-btn:hover { background: #e2e9f2; }
+  .tab-btn.active {
+    background: #13294b; color: white; border-color: #13294b;
+    box-shadow: inset 0 -3px 0 #ee7d24;
+  }
+  .eps-container {
+    display: grid; grid-template-columns: 340px 1fr;
+    gap: 16px; padding: 16px 24px; align-items: start;
+  }
+  .eps-config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .eps-field { display: flex; flex-direction: column; gap: 3px; }
+  .eps-field label {
+    font-size: 10px; font-weight: 600; color: #48535f;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .eps-field input, .eps-field select {
+    border: 1px solid #c9d6e8; border-radius: 4px; padding: 5px 8px;
+    font-family: Consolas, 'Courier New', monospace; font-size: 13px; width: 100%;
+  }
+  .eps-field input:focus, .eps-field select:focus {
+    outline: none; border-color: #ee7d24;
+    box-shadow: 0 0 0 2px rgba(238,125,36,0.2);
+  }
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+  .algo-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 9px; border: 1px solid #c9d6e8; border-radius: 6px;
+    background: #f7f9fc; cursor: pointer; font-size: 12px; font-weight: 600;
+    color: #36424f; user-select: none; transition: all 0.15s;
+  }
+  .algo-chip input { accent-color: #ee7d24; margin: 0; }
+  .algo-chip.sel { border-color: #ee7d24; background: #fdf3ea; color: #13294b; }
+  .algo-chip.disabled { opacity: 0.45; cursor: not-allowed; }
+  .chip-tag {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 1px 5px; border-radius: 3px;
+  }
+  .chip-tag.clasico { background: #e0efeb; color: #0f6f5c; }
+  .chip-tag.moderno { background: #fdeadd; color: #b35a10; }
+  .eps-table-wrap { overflow-x: auto; }
+  .eps-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .eps-table th {
+    font-size: 10px; text-transform: uppercase; color: #48535f;
+    letter-spacing: 0.4px; padding: 5px 8px;
+    border-bottom: 2px solid #d7deea; text-align: right;
+  }
+  .eps-table th:first-child { text-align: left; }
+  .eps-table td {
+    padding: 5px 8px; border-bottom: 1px solid #eef2f7; text-align: right;
+    font-family: Consolas, 'Courier New', monospace;
+  }
+  .eps-table td:first-child {
+    text-align: left; font-family: inherit; font-weight: 600; color: #13294b;
+  }
+  #eps-tabla td:first-child { font-style: italic; }
+  .eps-table td.best { color: #1f7a45; font-weight: 700; }
+  .eps-table td.worst { color: #c8453a; font-weight: 700; }
+  .eps-proc-wrap {
+    max-height: 240px; overflow: auto;
+    border: 1px solid #e2e8f0; border-radius: 6px;
+  }
+  .eps-placeholder { color: #48535f; font-size: 13px; font-style: italic; padding: 10px 4px; }
+  .mwt-row {
+    display: grid; grid-template-columns: 84px 1fr 84px;
+    align-items: center; gap: 10px; margin: 5px 0;
+  }
+  .mwt-label { font-size: 12px; font-weight: 600; color: #36424f; text-align: right; }
+  .mwt-track { background: #eef2f7; border-radius: 4px; height: 16px; }
+  .mwt-bar { background: #1f5aa0; height: 16px; border-radius: 0 4px 4px 0; min-width: 2px; }
+  .mwt-value { font-family: Consolas, 'Courier New', monospace; font-size: 12px; color: #243240; }
+  .eps-gantt-row {
+    display: grid; grid-template-columns: 84px 1fr 64px;
+    gap: 10px; align-items: center; margin: 6px 0;
+  }
+  .eps-gantt-label { font-size: 12px; font-weight: 600; color: #36424f; text-align: right; }
+  .eps-gantt-strip {
+    display: flex; height: 24px; border-radius: 4px; overflow: hidden;
+    border: 1px solid #d7deea; background: #eef2f7;
+  }
+  .eps-gantt-seg { height: 100%; border-right: 1px solid rgba(255,255,255,0.45); }
+  .eps-gantt-seg:last-child { border-right: none; }
+  .eps-gantt-seg.idle {
+    background: repeating-linear-gradient(45deg,
+      #e2e8f0, #e2e8f0 4px, #cbd5e1 4px, #cbd5e1 8px);
+  }
+  .eps-gantt-fin { font-family: Consolas, 'Courier New', monospace; font-size: 11px; color: #48535f; }
+  details.eps-details {
+    border: 1px solid #d7deea; border-radius: 6px;
+    padding: 8px 12px; background: white; margin-top: 10px;
+  }
+  details.eps-details summary { cursor: pointer; font-weight: 600; font-size: 12px; color: #13294b; }
+  details.eps-details[open] summary { margin-bottom: 8px; }
+  .eps-console {
+    background: #0f1b2d; color: #d5e2f2;
+    font-family: Consolas, 'Courier New', monospace; font-size: 11px; line-height: 1.5;
+    padding: 10px 12px; border-radius: 6px;
+    max-height: 260px; overflow: auto; white-space: pre;
+  }
+  .eps-warn {
+    font-size: 12px; color: #9c4f0e; background: #fdeadd;
+    border-left: 3px solid #ee7d24; border-radius: 4px;
+    padding: 6px 10px; margin-top: 10px;
+  }
+  .eps-footer { text-align: center; padding: 16px; font-size: 12px; color: #48535f; }
+  .eps-footer a { color: #1f5aa0; text-decoration: none; }
+  .eps-footer a:hover { text-decoration: underline; }
+
   @media (max-width: 980px) {
     .container { grid-template-columns: 1fr; }
+    .eps-container { grid-template-columns: 1fr; }
     .speed-control { margin-left: 0; }
   }
 </style>
@@ -353,9 +473,26 @@
 <body>
 
 <header>
-  <div>
-    <h1>Simulador de Planificación de CPU</h1>
-    <div class="subtitle">Herramienta didáctica · Sistemas Operativos</div>
+  <div class="brand">
+    <svg width="64" height="64" viewBox="0 0 100 100" role="img" aria-label="Logo EPSSim">
+      <rect x="1" y="1" width="98" height="98" rx="12"
+            fill="#ffffff" fill-opacity="0.08" stroke="#ee7d24" stroke-width="2"/>
+      <g stroke="#ee7d24" stroke-width="2" fill="none">
+        <rect x="27" y="20" width="46" height="40" rx="4" fill="#ffffff" fill-opacity="0.06"/>
+        <line x1="33" y1="20" x2="33" y2="14"/><line x1="45" y1="20" x2="45" y2="14"/>
+        <line x1="57" y1="20" x2="57" y2="14"/><line x1="67" y1="20" x2="67" y2="14"/>
+        <line x1="33" y1="60" x2="33" y2="66"/><line x1="45" y1="60" x2="45" y2="66"/>
+        <line x1="57" y1="60" x2="57" y2="66"/><line x1="67" y1="60" x2="67" y2="66"/>
+      </g>
+      <text x="50" y="45" text-anchor="middle" font-size="15" font-weight="700"
+            fill="#ffffff" font-family="Consolas, monospace">CPU</text>
+      <text x="50" y="87" text-anchor="middle" font-size="13" font-weight="700"
+            fill="#ffffff" letter-spacing="1" font-family="Consolas, monospace">EPSSim</text>
+    </svg>
+    <div>
+      <h1>EPSSim</h1>
+      <div class="subtitle">Aprendiendo planificación del procesador mediante la simulación</div>
+    </div>
   </div>
   <div class="header-right">
     <div class="shortcuts">
@@ -364,6 +501,109 @@
     <button class="about-btn" id="btn-about" title="Acerca de">ⓘ Acerca de</button>
   </div>
 </header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-eps">⚖ Comparador de algoritmos</button>
+  <button class="tab-btn" id="tab-paso">▶ Simulador paso a paso</button>
+</div>
+
+<div id="vista-eps">
+  <div class="eps-container">
+    <aside class="panel">
+      <h3>Configuración global</h3>
+      <div class="eps-config-grid">
+        <div class="eps-field"><label for="eps-n">Nº de procesos</label><input type="number" id="eps-n" min="1" max="500" value="20"></div>
+        <div class="eps-field"><label for="eps-maxbt">Ráfaga máx. (maxBT)</label><input type="number" id="eps-maxbt" min="1" max="1000" value="50"></div>
+        <div class="eps-field"><label for="eps-maxat">Llegada máx. (maxAT)</label><input type="number" id="eps-maxat" min="0" max="5000" value="0"></div>
+        <div class="eps-field"><label for="eps-seed">Semilla (seed)</label><input type="number" id="eps-seed" value="42"></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="eps-btn-generar">Generar procesos</button>
+        <button class="btn primary" id="eps-btn-ejecutar">▶ Ejecutar</button>
+      </div>
+
+      <h3>Algoritmos</h3>
+      <div class="chip-grid" id="eps-chips"></div>
+      <div class="actions">
+        <button class="btn" id="eps-btn-todos">Seleccionar todos</button>
+        <button class="btn" id="eps-btn-ninguno">Ninguno</button>
+      </div>
+      <div class="eps-warn" id="eps-aviso-mtsjrr" style="display:none;">⚠ MTSJRR está diseñado para AT&nbsp;=&nbsp;0: con maxAT&nbsp;&gt;&nbsp;0 queda deshabilitado.</div>
+
+      <details class="eps-details">
+        <summary>Parámetros de ETS</summary>
+        <div class="eps-config-grid">
+          <div class="eps-field"><label for="eps-ets-alpha">Alfa (α)</label><input type="number" id="eps-ets-alpha" step="0.1" min="0.1" max="5" value="1.0"></div>
+          <div class="eps-field"><label for="eps-ets-qmin">Qmin</label><input type="number" id="eps-ets-qmin" min="1" value="5"></div>
+          <div class="eps-field"><label for="eps-ets-qmax">Qmax</label><input type="number" id="eps-ets-qmax" min="1" value="100"></div>
+          <div class="eps-field"><label for="eps-ets-metodo">Método</label>
+            <select id="eps-ets-metodo">
+              <option value="MEDIA" selected>MEDIA</option>
+              <option value="MEDIANA">MEDIANA</option>
+              <option value="PERCENTIL">PERCENTIL</option>
+            </select>
+          </div>
+          <div class="eps-field"><label for="eps-ets-percentil">Percentil</label><input type="number" id="eps-ets-percentil" step="0.05" min="0" max="1" value="0.75"></div>
+          <div class="eps-field"><label for="eps-ets-mover">Recolocación</label>
+            <select id="eps-ets-mover">
+              <option value="false" selected>mantener posición</option>
+              <option value="true">mover al final</option>
+            </select>
+          </div>
+        </div>
+      </details>
+
+      <details class="eps-details">
+        <summary>config.properties</summary>
+        <div class="eps-console" id="eps-properties"></div>
+      </details>
+
+      <details class="eps-details">
+        <summary>Procesos generados</summary>
+        <div class="eps-proc-wrap">
+          <table class="eps-table">
+            <thead><tr><th>PID</th><th>BT</th><th>AT</th><th title="Prioridad (la usa PBRR)">Prio</th></tr></thead>
+            <tbody id="eps-proc-tbody"></tbody>
+          </table>
+        </div>
+      </details>
+    </aside>
+
+    <main class="panel">
+      <h3>Tabla comparativa</h3>
+      <div class="eps-table-wrap">
+        <table class="eps-table" id="eps-tabla">
+          <thead>
+            <tr>
+              <th>Algoritmo</th>
+              <th title="Media del Turnaround Time (TT = CT − AT)">MTT</th>
+              <th title="Media del Waiting Time (WT = TT − BT)">MWT</th>
+              <th title="Número de cambios de contexto">NCS</th>
+              <th title="Número de ordenaciones de cola">NS</th>
+            </tr>
+          </thead>
+          <tbody id="eps-tabla-tbody">
+            <tr><td colspan="5"><span class="eps-placeholder">Selecciona algoritmos y pulsa «Ejecutar» para compararlos sobre el mismo conjunto de procesos.</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button class="btn" id="eps-btn-csv" disabled>⬇ Exportar CSV</button>
+      </div>
+
+      <h3>MWT por algoritmo</h3>
+      <div id="eps-chart"><div class="eps-placeholder">Sin resultados todavía.</div></div>
+
+      <h3>Diagramas de Gantt</h3>
+      <div id="eps-gantts"><div class="eps-placeholder">Sin resultados todavía.</div></div>
+
+      <h3>Salida paso a paso</h3>
+      <div id="eps-consolas"><div class="eps-placeholder">Sin resultados todavía.</div></div>
+    </main>
+  </div>
+</div>
+
+<div id="vista-paso" style="display:none;">
 
 <div class="algo-bar">
   <div class="algo-group">
@@ -468,6 +708,10 @@
     <div id="starvation-result"></div>
   </main>
 </div>
+
+</div><!-- /vista-paso -->
+
+<footer class="eps-footer">Código abierto · Licencia MIT · <a href="https://github.com/lia2-group/EPSSim" target="_blank" rel="noopener">github.com/lia2-group/EPSSim</a></footer>
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay">
@@ -1152,8 +1396,11 @@ function showAboutModal() {
       <div class="contact-item"><span class="label">ResearchGate</span><a href="https://www.researchgate.net/profile/Manuel-Alonso-Carracedo" target="_blank" rel="noopener">profile/Manuel-Alonso-Carracedo</a></div>
       <div class="contact-item"><span class="label">ORCID</span><a href="https://orcid.org/0009-0001-5037-5826" target="_blank" rel="noopener">0009-0001-5037-5826</a></div>
     </div>
-    <h4>Contexto académico</h4>
-    <p>Aplicación desarrollada en el contexto del <strong>Máster Universitario en Profesorado de Educación Secundaria Obligatoria y Bachillerato, Formación Profesional y Enseñanza de Idiomas</strong>, cursado en la <strong>UCAV</strong>, para la asignatura <em>Metodología y Evaluación en Matemáticas e Informática</em>.</p>
+    <h4>Simulador paso a paso</h4>
+    <p>Desarrollado en el contexto del <strong>Máster Universitario en Profesorado de Educación Secundaria Obligatoria y Bachillerato, Formación Profesional y Enseñanza de Idiomas</strong>, cursado en la <strong>UCAV</strong>, para la asignatura <em>Metodología y Evaluación en Matemáticas e Informática</em>.</p>
+    <h4>Comparador de algoritmos</h4>
+    <p>Implementa de forma gráfica <strong>EPSSim</strong> (Educational Process Scheduling Simulator), trabajo presentado en las <strong>Jornadas sobre la Enseñanza Universitaria de la Informática «JENUI» 2026</strong>: ejecuta múltiples algoritmos de planificación sobre el mismo conjunto de procesos y los compara lado a lado con métricas objetivas.</p>
+    <p>El código de EPSSim está disponible en <a href="https://github.com/lia2-group/EPSSim" target="_blank" rel="noopener">github.com/lia2-group/EPSSim</a>.</p>
     <p style="color:#64748b;font-size:12px;margin-top:14px;">Herramienta didáctica para visualizar algoritmos de planificación de CPU.</p>
   `;
   openModal('Acerca de', body, `<button class="btn primary" data-action="close">Cerrar</button>`);
@@ -1283,6 +1530,7 @@ function setup() {
       closeModal();
       return;
     }
+    if (vistaActual !== 'paso') return; // atajos solo en el simulador paso a paso
     if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
     else if (e.code === 'ArrowRight') { e.preventDefault(); if (!isRunning) step(); }
     else if (e.code === 'ArrowLeft') { e.preventDefault(); stepBack(); }
@@ -1290,11 +1538,823 @@ function setup() {
   });
 }
 
+// ═══════════════════ EPSSim: motor de simulación ═══════════════════
+// Puerto JavaScript del Planificador/Cpu de EPSSim (carpeta simprocesos/).
+// Cada algoritmo replica su clase Java homónima; los que son aproximaciones
+// llevan un comentario TODO indicándolo.
+
+// PRNG sembrado (mulberry32): misma semilla ⇒ mismos procesos ⇒ mismos resultados.
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function epsGenerarProcesos(n, maxBT, maxAT, seed) {
+  const rng = mulberry32(seed);
+  const procs = [];
+  for (let i = 1; i <= n; i++) {
+    procs.push({
+      nombre: 'P' + i,
+      bt: 1 + Math.floor(rng() * maxBT),      // BT en [1, maxBT]
+      at: Math.floor(rng() * (maxAT + 1)),    // AT en [0, maxAT]
+      prioridad: 1 + Math.floor(rng() * 10)   // 1..10, solo la usa PBRR
+    });
+  }
+  return procs;
+}
+
+// Réplica de Cpu.java: 'cambios' es el NCS y 'ordenaciones' el NS.
+// Re-despachar el mismo proceso resta y suma un cambio (neto 0), como en el Java.
+function epsNuevaCpu() {
+  return {
+    free: true, running: null,
+    quantum: 10,            // valor por defecto, como en Cpu.java
+    quantumConsumido: 0,
+    reloj: 0, cambios: 0, ordenaciones: 0,
+    setRunning(p) {
+      if (p !== null && p === this.running) this.cambios--;
+      this.running = p;
+      this.cambios++;
+      this.free = false;
+      this.quantumConsumido = 0;
+      if (p === null) this.free = true;
+    },
+    setQuantum(q) { this.quantum = q; }
+  };
+}
+
+// Utilidades estadísticas con divisiones enteras, como el Java.
+function epsMedia(vals) { return Math.floor(vals.reduce((s, v) => s + v, 0) / vals.length); }
+function epsMediana(vals) {
+  const v = [...vals].sort((a, b) => a - b);
+  const m = Math.floor(v.length / 2);
+  return v.length % 2 === 0 ? Math.floor((v[m - 1] + v[m]) / 2) : v[m];
+}
+function epsModa(vals) {
+  const freq = new Map();
+  let moda = vals[0], max = 0;
+  for (const v of vals) {
+    const f = (freq.get(v) || 0) + 1;
+    freq.set(v, f);
+    if (f > max) { max = f; moda = v; }
+  }
+  return moda;
+}
+function epsLlegadaFIFO(c, nuevos, cl) {
+  for (const p of nuevos) if (p.at === c.reloj) cl.push(p);
+  return cl;
+}
+
+// ── RR: puerto de RoundRobin.java. Sin parámetro, el quantum es la media
+//    de los BT de la cola de listos (regla por defecto de EPSSim).
+function epsCrearRR(p) {
+  const quantumFijo = p.quantum || 0;
+  return {
+    comprobarLlegada: epsLlegadaFIFO,
+    calcularQuantum(cl) {
+      if (quantumFijo > 0) return quantumFijo;
+      if (!cl.length) return -1;
+      return epsMedia(cl.map(x => x.bt));
+    },
+    runAlgoritmo(c, cl, cf) {
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else cl.push(c.running);
+      }
+      return cl.length ? cl.shift() : null;
+    }
+  };
+}
+
+// ── SJF: puerto de Sjf.java (no apropiativo; ordena la cola por RT al llegar procesos).
+function epsCrearSJF() {
+  return {
+    comprobarLlegada(c, nuevos, cl) {
+      let ordenar = false;
+      for (const pr of nuevos) if (pr.at === c.reloj) { cl.push(pr); ordenar = true; }
+      if (ordenar) { cl.sort((a, b) => a.rt - b.rt); c.ordenaciones++; }
+      return cl;
+    },
+    calcularQuantum() { return -1; },
+    runAlgoritmo(c, cl, cf) {
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else return c.running;
+      }
+      return cl.length ? cl.shift() : null;
+    }
+  };
+}
+
+// ── ADRR: puerto de Adrr.java. Como RR, pero si al agotar el quantum la ráfaga
+//    restante es menor que quantum/divisorQ, el proceso continúa (sin contar cambio).
+function epsCrearADRR(p) {
+  const divisorQ = p.divisorQ ?? 2;
+  return {
+    comprobarLlegada: epsLlegadaFIFO,
+    calcularQuantum(cl) {
+      if (!cl.length) return -1;
+      return epsMedia(cl.map(x => x.bt));
+    },
+    runAlgoritmo(c, cl, cf) {
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else if (c.running.rt < Math.floor(c.quantum / divisorQ)) return c.running;
+        else cl.push(c.running);
+      }
+      return cl.length ? cl.shift() : null;
+    }
+  };
+}
+
+// ── MMRR: puerto de Mmrra.java (Modified Median Round Robin).
+function epsCrearMMRR(p) {
+  const peso = p.peso ?? 20;
+  const metodo = (p.metodo || 'MEDIAN').toUpperCase();
+  const segunda = [];
+  return {
+    comprobarLlegada: epsLlegadaFIFO,
+    comprobarListos: (cl) => cl.length > 0 || segunda.length > 0,
+    calcularQuantum(cl) {
+      if (!cl.length) return -1;
+      let valor;
+      if (metodo === 'MEAN') valor = cl.reduce((s, x) => s + x.bt, 0) / cl.length;
+      else if (metodo === 'MODE') valor = epsModa(cl.map(x => x.bt));
+      else { // MEDIAN posicional sobre la cola sin ordenar, como en Mmrra.java
+        const index = Math.floor(cl.length / 2);
+        valor = cl.length % 2 !== 0 ? cl[index].bt : (cl[index].bt + cl[index - 1].bt) / 2;
+      }
+      return Math.floor(Math.sqrt(valor * cl[cl.length - 1].bt));
+    },
+    runAlgoritmo(c, cl, cf) {
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else if (c.running.rt <= Math.floor(c.running.bt * peso / 100)) return c.running;
+        else segunda.push(c.running);
+      }
+      if (!cl.length) return segunda.length ? segunda.shift() : null;
+      return cl.shift();
+    }
+  };
+}
+
+// ── K-Factor: puerto de K_Factor.java (variante de SJF con antienvejecimiento).
+function epsCrearKFactor(p) {
+  let k = p.k ?? 2;
+  const modo = (p.modo || 'constant').toLowerCase();
+  return {
+    comprobarLlegada(c, nuevos, cl) {
+      let ordenar = false;
+      for (const pr of nuevos) if (pr.at === c.reloj) { cl.push(pr); ordenar = true; }
+      if (ordenar) { cl.sort((a, b) => a.rt - b.rt); c.ordenaciones++; }
+      return cl;
+    },
+    calcularQuantum() { return -1; },
+    runAlgoritmo(c, cl, cf) {
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else return c.running; // no apropiativo
+      }
+      if (!cl.length) return null;
+      if (cl.length < 2) return cl.shift();
+      // if (K·BT[0] > t + BT[1]) se ejecuta P[1]; si no, P[0]
+      const elegido = (k * cl[0].bt > c.reloj + cl[1].bt) ? 1 : 0;
+      if (modo === 'constant') k++;
+      else if (modo === 'alternative' && c.running) k += c.running.bt;
+      return cl.splice(elegido, 1)[0];
+    }
+  };
+}
+
+// ── DMLFQ: puerto de Dmlfq.java.
+//    TODO: aproximación — revisar contra Dmlfq.java: el original hace
+//    terceraCola.clear() al reordenar tras nuevas llegadas y puede perder
+//    procesos; aquí la tercera cola se reintegra en la segunda antes del reparto.
+function epsCrearDMLFQ(p) {
+  const btCorte = p.btCorte ?? 10;
+  let segunda = [], tercera = [];
+  let qc1 = btCorte, qc2 = 0, qc3 = 0, contador = 1, listaActual = 1;
+  const repartir = (c) => {
+    segunda.sort((a, b) => a.bt - b.bt);
+    c.ordenaciones++;
+    const index = Math.floor((2 * (segunda.length - 1)) / 3);
+    qc2 = segunda[index].bt;
+    const aTercera = segunda.length - index - 1;
+    for (let i = 0; i < aTercera; i++) tercera.push(segunda.pop());
+    qc1 = btCorte;
+    if (tercera.length) {
+      tercera.sort((a, b) => a.bt - b.bt);
+      qc3 = tercera[tercera.length - 1].bt;
+    }
+  };
+  return {
+    inicializarCola(c, procesos) {
+      const temp = [];
+      for (const pr of procesos) {
+        if (pr.at === 0) (pr.bt <= btCorte ? temp : segunda).push(pr);
+      }
+      if (segunda.length) repartir(c);
+      listaActual = 1;
+      return temp;
+    },
+    comprobarLlegada(c, nuevos, cl) {
+      if (c.reloj === 0) return cl; // las colas ya se inicializaron
+      let reordenar = false;
+      for (const pr of nuevos) {
+        if (pr.at === c.reloj) {
+          if (pr.bt <= btCorte) cl.push(pr);
+          else { segunda.push(pr); reordenar = true; }
+        }
+      }
+      if (reordenar && segunda.length) {
+        segunda = segunda.concat(tercera);
+        tercera = [];
+        repartir(c);
+      }
+      return cl;
+    },
+    comprobarListos: (cl) => cl.length > 0 || segunda.length > 0 || tercera.length > 0,
+    calcularQuantum() {
+      return listaActual === 1 ? qc1 : listaActual === 2 ? qc2 : listaActual === 3 ? qc3 : 0;
+    },
+    runAlgoritmo(c, cl, cf) {
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else return c.running; // como en Dmlfq.java: el proceso conserva la CPU
+      }
+      if (cl.length) { c.setQuantum(qc1); listaActual = 1; return cl.shift(); }
+      if (segunda.length) {
+        if (contador >= 3 && tercera.length) {
+          contador = 1; c.setQuantum(qc3); listaActual = 3;
+          return tercera.shift();
+        }
+        c.setQuantum(qc2); listaActual = 2; contador++;
+        return segunda.shift();
+      }
+      if (tercera.length) { c.setQuantum(qc3); listaActual = 3; return tercera.shift(); }
+      return null;
+    }
+  };
+}
+
+// ── ETS: puerto de EffectiveTimeSlice.java. Cola ordenada por ráfaga restante y
+//    quantum dinámico (media/mediana/percentil de las ráfagas restantes, con α y
+//    límites Qmin/Qmax). Nota: en el Java, Boolean.getBoolean() hace que
+//    moverAlFinal sea siempre false (mantener posición); ese es el defecto aquí,
+//    y es lo que hace que con AT = 0 sea equivalente a SJF.
+function epsCrearETS(p) {
+  const alpha = p.alpha ?? 1.0;
+  const Qmin = p.qmin ?? 5;
+  const Qmax = p.qmax ?? 100;
+  const metodo = (p.metodo || 'MEDIA').toUpperCase();
+  const percentil = p.percentil ?? 0.75;
+  const moverAlFinal = p.moverAlFinal ?? false;
+  let totalProcesos = 0, ejecutadosEnRonda = 0, primerCiclo = true;
+  const calcQ = (cl) => {
+    if (!cl.length) return -1;
+    const rts = cl.map(x => x.rt).sort((a, b) => a - b);
+    let q;
+    if (metodo === 'MEDIANA') q = rts[Math.floor(rts.length / 2)];
+    else if (metodo === 'PERCENTIL') q = rts[Math.min(Math.floor(percentil * rts.length), rts.length - 1)];
+    else q = Math.floor(rts.reduce((s, v) => s + v, 0) / rts.length);
+    q = Math.floor(alpha * q);
+    return Math.max(Qmin, Math.min(q, Qmax));
+  };
+  const inicializar = (c, cl) => {
+    cl.sort((a, b) => a.bt - b.bt);
+    c.setQuantum(calcQ(cl));
+    totalProcesos = cl.length;
+  };
+  return {
+    // Como en el bloque ETS de Planificador.inicializar(): la ordenación inicial
+    // por BT cuenta como una ordenación.
+    alInicio(c, procesos) { procesos.sort((a, b) => a.bt - b.bt); c.ordenaciones++; },
+    comprobarLlegada(c, nuevos, cl) {
+      for (const pr of nuevos) if (pr.at === c.reloj) { cl.push(pr); totalProcesos++; }
+      return cl;
+    },
+    calcularQuantum: calcQ,
+    runAlgoritmo(c, cl, cf) {
+      if (primerCiclo) { inicializar(c, cl); primerCiclo = false; }
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else if (moverAlFinal) cl.push(c.running);
+        else cl.unshift(c.running); // mantener posición
+        ejecutadosEnRonda++;
+      }
+      if (!cl.length) return null;
+      if (ejecutadosEnRonda >= totalProcesos) {
+        c.setQuantum(calcQ(cl));
+        ejecutadosEnRonda = 0;
+      }
+      return cl.shift();
+    }
+  };
+}
+
+// ── PBRR: TODO: aproximación — revisar contra PriorityBasedRoundRobin.java.
+//    Diferencias deliberadas: (1) en el Java, calcularQuantum() devuelve -1 y el
+//    Planificador machaca cada ciclo el quantum fijado en runAlgoritmo, anulando
+//    la expulsión; aquí el quantum por despacho se conserva (quantumPorDespacho).
+//    (2) El Java solo ordena por prioridad la primera ronda (nuevaRonda nunca
+//    vuelve a true); aquí se reordena al concluir cada ronda, como el artículo.
+//    Quantum dinámico: pQ = bQ + (priority · qI / mP); con qBase = 0, bQ es la
+//    media de las ráfagas de la cola de listos (quantum por defecto de EPSSim).
+function epsCrearPBRR(p) {
+  const modo = (p.modo || 'VARIABLE').toUpperCase();
+  const qFijo = p.qFijo ?? 10;
+  const qBase = p.qBase ?? 0;
+  const qIncr = p.qIncr ?? 2;
+  const prioMax = p.prioMax ?? 10;
+  let nuevaRonda = true, rondaRestante = 0;
+  return {
+    quantumPorDespacho: true,
+    comprobarLlegada: epsLlegadaFIFO,
+    calcularQuantum() { return -1; },
+    runAlgoritmo(c, cl, cf) {
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else cl.push(c.running);
+      }
+      if (!cl.length) return null;
+      if (nuevaRonda || rondaRestante <= 0) {
+        cl.sort((a, b) => b.prioridad - a.prioridad); // mayor prioridad primero
+        c.ordenaciones++;
+        rondaRestante = cl.length;
+        nuevaRonda = false;
+      }
+      const sel = cl.shift();
+      rondaRestante--;
+      let q;
+      if (modo === 'FIXED') q = qFijo;
+      else {
+        const base = qBase > 0 ? qBase : (cl.length ? epsMedia(cl.map(x => x.bt)) : sel.bt);
+        q = base + Math.floor(sel.prioridad * qIncr / prioMax);
+      }
+      c.setQuantum(Math.max(1, q));
+      return sel;
+    }
+  };
+}
+
+// ── IRR: puerto de ImprovedRoundRobin.java. Nota de fidelidad: como en el Java,
+//    la expulsión usa el quantum escalar de la CPU (10, valor por defecto de
+//    Cpu.java), que IRR nunca modifica: el quantum individual que calcula se
+//    guarda en un mapa que el Planificador no consulta. Ese quantum efectivo
+//    pequeño es lo que dispara el NCS de IRR muy por encima de RR, como en los
+//    resultados del artículo.
+//    TODO: aproximación — revisar contra ImprovedRoundRobin.java si se quiere
+//    aplicar la fórmula TQ = m/2 + (m/2)/BT del artículo, que la clase Java no
+//    llega a usar de forma efectiva.
+function epsCrearIRR(p) {
+  const metodo = (p.metodo || 'MEDIA').toUpperCase();
+  let ejecutados = 0, total = 0, nuevaRonda = true;
+  const quantumMap = new Map();
+  const calcQProc = (cl) => {
+    if (!cl.length) return 1;
+    const bts = cl.map(x => x.bt);
+    const q = metodo === 'MEDIANA' ? epsMediana(bts) : metodo === 'MODA' ? epsModa(bts) : epsMedia(bts);
+    return Math.max(q, 1);
+  };
+  return {
+    recalcularQuantums(c, cl) { // el motor lo invoca cada ciclo, como Planificador.java
+      if (ejecutados >= total) {
+        for (const pr of cl) quantumMap.set(pr, calcQProc(cl));
+        ejecutados = 0;
+        nuevaRonda = true;
+      }
+    },
+    comprobarLlegada(c, nuevos, cl) {
+      for (const pr of nuevos) if (pr.at === c.reloj) { cl.push(pr); total++; }
+      return cl;
+    },
+    calcularQuantum() { return -1; },
+    runAlgoritmo(c, cl, cf) {
+      if (total === 0) total = cl.length;
+      if (c.running) {
+        if (c.running.rt === 0) {
+          c.running.estado = 'finalizado';
+          cf.push(c.running);
+          quantumMap.delete(c.running);
+          ejecutados++;
+        } else cl.push(c.running);
+      }
+      if (!cl.length) return null;
+      if (nuevaRonda) { cl.sort((a, b) => a.bt - b.bt); nuevaRonda = false; }
+      return cl.shift();
+    }
+  };
+}
+
+// ── MTSJRR: TODO: aproximación — revisar contra MTSJRR.java. La clase Java
+//    calcula el umbral pero nunca lo aplica (calcularUmbral no se invoca) y
+//    hereda la estructura de IRR; aquí se implementa el comportamiento descrito
+//    en el artículo: los procesos con BT ≤ media se ejecutan primero con SJF y
+//    el resto después con RR de quantum fijo. Nota: Cpu.java suprime el conteo
+//    de NCS para MTSJRR (setMTSJRR); aquí se cuenta con normalidad para que la
+//    comparativa sea informativa. Requiere AT = 0.
+function epsCrearMTSJRR(p) {
+  const quantumFijo = p.quantumFijo ?? 3;
+  let largos = [], fase = 'SJF';
+  return {
+    inicializarCola(c, procesos) {
+      const todos = procesos.filter(pr => pr.at === 0);
+      const umbral = todos.length ? epsMedia(todos.map(pr => pr.bt)) : 0;
+      const cortos = todos.filter(pr => pr.bt <= umbral).sort((a, b) => a.bt - b.bt);
+      c.ordenaciones++;
+      largos = todos.filter(pr => pr.bt > umbral);
+      return cortos;
+    },
+    comprobarLlegada(c, nuevos, cl) { return cl; }, // AT = 0: sin llegadas posteriores
+    comprobarListos: (cl) => cl.length > 0 || largos.length > 0,
+    calcularQuantum() { return fase === 'SJF' ? -1 : quantumFijo; },
+    runAlgoritmo(c, cl, cf) {
+      if (c.running) {
+        if (c.running.rt === 0) { c.running.estado = 'finalizado'; cf.push(c.running); }
+        else if (fase === 'SJF') return c.running; // fase SJF: no apropiativo
+        else largos.push(c.running);
+      }
+      if (cl.length) return cl.shift();
+      if (largos.length) { fase = 'RR'; return largos.shift(); }
+      return null;
+    }
+  };
+}
+
+const EPS_ALGOS = [
+  { id: 'RR',      nombre: 'RR',      clase: 'clasico', titulo: 'Round Robin',                            crear: epsCrearRR },
+  { id: 'SJF',     nombre: 'SJF',     clase: 'clasico', titulo: 'Shortest Job First',                     crear: epsCrearSJF },
+  { id: 'ADRR',    nombre: 'ADRR',    clase: 'moderno', titulo: 'Augmented Dynamic Round Robin',          crear: epsCrearADRR },
+  { id: 'MMRR',    nombre: 'MMRR',    clase: 'moderno', titulo: 'Modified Median Round Robin',            crear: epsCrearMMRR },
+  { id: 'KFACTOR', nombre: 'K-Factor',clase: 'moderno', titulo: 'K-Factor',                               crear: epsCrearKFactor },
+  { id: 'DMLFQ',   nombre: 'DMLFQ',   clase: 'moderno', titulo: 'Dynamic Multilevel Feedback Queues',     crear: epsCrearDMLFQ },
+  { id: 'ETS',     nombre: 'ETS',     clase: 'moderno', titulo: 'Effective Time Slice',                   crear: epsCrearETS },
+  { id: 'PBRR',    nombre: 'PBRR',    clase: 'moderno', titulo: 'Priority Based Round Robin',             crear: epsCrearPBRR },
+  { id: 'IRR',     nombre: 'IRR',     clase: 'moderno', titulo: 'Improved Round Robin',                   crear: epsCrearIRR },
+  { id: 'MTSJRR',  nombre: 'MTSJRR',  clase: 'moderno', titulo: 'Mean Threshold Shortest Job Round Robin', requiereAT0: true, crear: epsCrearMTSJRR }
+];
+
+// Puerto del bucle principal de Planificador.ejecutar().
+function epsSimular(def, procesosBase, params) {
+  // Cada algoritmo recibe copias independientes del mismo conjunto de procesos.
+  const procesos = procesosBase.map(p => ({
+    nombre: p.nombre, bt: p.bt, at: p.at, prioridad: p.prioridad,
+    rt: p.bt, ct: 0, tt: 0, wt: 0, estado: 'listo'
+  }));
+  const c = epsNuevaCpu();
+  const algo = def.crear(params || {});
+  let colaListos = [];
+  const colaFinalizados = [];
+  const timeline = [];
+  const log = [];
+  const LOG_MAX = 400;
+  let time = 0;
+  let time_off = -1;
+  for (const p of procesos) if (p.at > time_off) time_off = p.at;
+  time_off++;
+
+  if (algo.alInicio) algo.alInicio(c, procesos);
+  if (algo.inicializarCola) colaListos = algo.inicializarCola(c, procesos);
+
+  const hayListos = (cl) => (algo.comprobarListos ? algo.comprobarListos(cl) : cl.length > 0);
+  let vanavenir = true;
+  const MAX_TICKS = 2000000;
+
+  while (hayListos(colaListos) || !c.free || vanavenir || procesos.length > 0) {
+    if (time >= MAX_TICKS) {
+      console.warn('EPSSim [' + def.id + ']: simulación abortada al superar ' + MAX_TICKS + ' ciclos');
+      break;
+    }
+    colaListos = algo.comprobarLlegada(c, procesos, colaListos);
+    if (algo.recalcularQuantums) {
+      algo.recalcularQuantums(c, colaListos); // caso especial IRR, como en Planificador.java
+    } else if (!algo.quantumPorDespacho) {
+      c.setQuantum(algo.calcularQuantum(colaListos));
+    }
+    const prev = c.running;
+    if (!c.free) {
+      if (c.running.rt === 0) { // el proceso termina
+        c.running.ct = time;
+        c.running.tt = c.running.ct - c.running.at;  // TT = CT − AT
+        c.running.wt = c.running.tt - c.running.bt;  // WT = TT − BT
+        if (log.length < LOG_MAX) log.push('t=' + String(time).padStart(5) + '  ✔ ' + c.running.nombre + ' finaliza (CT=' + time + ')');
+        c.free = true;
+        c.setRunning(algo.runAlgoritmo(c, colaListos, colaFinalizados));
+      } else if (c.quantum === c.quantumConsumido) { // fin de quantum
+        c.free = true;
+        c.setRunning(algo.runAlgoritmo(c, colaListos, colaFinalizados));
+      }
+    } else {
+      c.setRunning(algo.runAlgoritmo(c, colaListos, colaFinalizados));
+    }
+    if (c.running !== prev && c.running !== null && log.length < LOG_MAX) {
+      const cola = colaListos.slice(0, 10).map(x => x.nombre + '(' + x.rt + ')').join(' ');
+      log.push('t=' + String(time).padStart(5) + '  ▶ CPU→' + c.running.nombre +
+        ' (resta ' + c.running.rt + ', q=' + c.quantum + ')  listos: [' + cola +
+        (colaListos.length > 10 ? ' …' : '') + ']');
+    }
+    if (c.running === null && !vanavenir) break;
+    if (c.running !== null) { c.running.rt--; c.quantumConsumido++; }
+    timeline.push(c.running ? c.running.nombre : null);
+    time++; c.reloj++;
+    if (c.reloj >= time_off) vanavenir = false;
+  }
+  if (log.length >= LOG_MAX) log.push('… (registro truncado a ' + LOG_MAX + ' líneas)');
+
+  const nFin = colaFinalizados.length;
+  if (nFin !== procesos.length) {
+    console.warn('EPSSim [' + def.id + ']: finalizaron ' + nFin + ' de ' + procesos.length + ' procesos');
+  }
+  let sTT = 0, sWT = 0;
+  for (const p of colaFinalizados) { sTT += p.tt; sWT += p.wt; }
+  const segmentos = [];
+  for (let t = 0; t < timeline.length; t++) {
+    const nom = timeline[t];
+    const last = segmentos[segmentos.length - 1];
+    if (last && last.nombre === nom) last.dur++;
+    else segmentos.push({ nombre: nom, inicio: t, dur: 1 });
+  }
+  return {
+    id: def.id, nombre: def.nombre, titulo: def.titulo,
+    MTT: nFin ? sTT / nFin : 0, MWT: nFin ? sWT / nFin : 0,
+    NCS: c.cambios, NS: c.ordenaciones,
+    duracionTotal: timeline.length, segmentos, log,
+    finalizados: nFin, total: procesos.length
+  };
+}
+
+// ═══════════════════ EPSSim: interfaz del comparador ═══════════════════
+let vistaActual = 'eps';
+const epsEstado = {
+  procesos: [], config: null, resultados: [],
+  seleccion: new Set(EPS_ALGOS.map(a => a.id))
+};
+const fmtES = (x) => x.toFixed(2).replace('.', ',');
+
+function epsLeerConfig() {
+  const n = Math.min(500, Math.max(1, parseInt($('eps-n').value) || 20));
+  const maxBT = Math.min(1000, Math.max(1, parseInt($('eps-maxbt').value) || 50));
+  const maxAT = Math.min(5000, Math.max(0, parseInt($('eps-maxat').value) || 0));
+  const seed = parseInt($('eps-seed').value) || 0;
+  $('eps-n').value = n; $('eps-maxbt').value = maxBT; $('eps-maxat').value = maxAT;
+  return { n, maxBT, maxAT, seed };
+}
+
+function epsParamsETS() {
+  return {
+    alpha: parseFloat($('eps-ets-alpha').value) || 1.0,
+    qmin: parseInt($('eps-ets-qmin').value) || 5,
+    qmax: parseInt($('eps-ets-qmax').value) || 100,
+    metodo: $('eps-ets-metodo').value,
+    percentil: parseFloat($('eps-ets-percentil').value) || 0.75,
+    moverAlFinal: $('eps-ets-mover').value === 'true'
+  };
+}
+
+function renderEpsChips() {
+  const cont = $('eps-chips');
+  cont.innerHTML = '';
+  const maxAT = Math.max(0, parseInt($('eps-maxat').value) || 0);
+  let hayDeshabilitado = false;
+  EPS_ALGOS.forEach(def => {
+    const deshabilitado = !!def.requiereAT0 && maxAT > 0;
+    if (deshabilitado) hayDeshabilitado = true;
+    const sel = epsEstado.seleccion.has(def.id) && !deshabilitado;
+    const label = document.createElement('label');
+    label.className = 'algo-chip' + (sel ? ' sel' : '') + (deshabilitado ? ' disabled' : '');
+    label.title = def.titulo + (deshabilitado ? ' — requiere maxAT = 0' : '');
+    label.innerHTML = '<input type="checkbox"' + (sel ? ' checked' : '') + (deshabilitado ? ' disabled' : '') + '>' +
+      def.nombre + ' <span class="chip-tag ' + def.clase + '">' + (def.clase === 'clasico' ? 'CLÁSICO' : 'MODERNO') + '</span>';
+    label.querySelector('input').onchange = (e) => {
+      if (e.target.checked) epsEstado.seleccion.add(def.id);
+      else epsEstado.seleccion.delete(def.id);
+      label.classList.toggle('sel', e.target.checked);
+    };
+    cont.appendChild(label);
+  });
+  $('eps-aviso-mtsjrr').style.display = hayDeshabilitado ? '' : 'none';
+}
+
+function renderEpsProcesos() {
+  const tb = $('eps-proc-tbody');
+  tb.innerHTML = '';
+  epsEstado.procesos.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td><span class="color-dot" style="background:' + getColor(p.nombre) + ';display:inline-block;vertical-align:middle;margin-right:6px;"></span>' + p.nombre + '</td>' +
+      '<td>' + p.bt + '</td><td>' + p.at + '</td><td>' + p.prioridad + '</td>';
+    tb.appendChild(tr);
+  });
+}
+
+function renderEpsProperties() {
+  const cfg = epsEstado.config || epsLeerConfig();
+  const ets = epsParamsETS();
+  $('eps-properties').textContent =
+'# Parámetros globales\n' +
+'numeroProcesos=' + cfg.n + '\n' +
+'maxBT=' + cfg.maxBT + '\n' +
+'maxAT=' + cfg.maxAT + '\n' +
+'seed=' + cfg.seed + '\n' +
+'bool_csv=true\n' +
+'bool_txt=false\n\n' +
+'# ETS: alpha, Qmin, Qmax, método, percentil, recolocación\n' +
+'ETS.parameters=' + ets.alpha + ',' + ets.qmin + ',' + ets.qmax + ',' + ets.metodo + ',' + ets.percentil + ',' + ets.moverAlFinal + '\n' +
+'# ADRR: divisor del quantum (2 = mitad)\n' +
+'ADRR.parameters=2\n' +
+'# MMRR: umbral %, método (MEDIAN|MEAN|MODE)\n' +
+'MMRR.parameters=20,MEDIAN\n' +
+'# K-Factor: k inicial, incremento (constant|alternative)\n' +
+'KFACTOR.parameters=2,constant\n' +
+'# DMLFQ: BT de corte de la cola 1\n' +
+'DMLFQ.parameters=10\n' +
+'# PBRR: modo, qFijo, qBase (0 = media de la cola), qIncremento, prioMin, prioMax\n' +
+'PBRR.parameters=VARIABLE,10,0,2,1,10\n' +
+'# IRR: método de quantum\n' +
+'IRR.parameters=MEDIA\n' +
+'# MTSJRR: quantum fijo de la fase RR\n' +
+'MTSJRR.parameters=3';
+}
+
+function epsGenerar() {
+  epsEstado.config = epsLeerConfig();
+  const cfg = epsEstado.config;
+  epsEstado.procesos = epsGenerarProcesos(cfg.n, cfg.maxBT, cfg.maxAT, cfg.seed);
+  renderEpsProcesos();
+  renderEpsProperties();
+  renderEpsChips();
+}
+
+function epsEjecutar() {
+  epsGenerar(); // regeneración determinista: misma semilla ⇒ mismos procesos
+  const cfg = epsEstado.config;
+  const etsParams = epsParamsETS();
+  epsEstado.resultados = [];
+  for (const def of EPS_ALGOS) {
+    if (!epsEstado.seleccion.has(def.id)) continue;
+    if (def.requiereAT0 && cfg.maxAT > 0) continue;
+    const params = def.id === 'ETS' ? etsParams : {};
+    epsEstado.resultados.push(epsSimular(def, epsEstado.procesos, params));
+  }
+  renderEpsResultados();
+}
+
+function renderEpsResultados() {
+  const res = epsEstado.resultados;
+  const tbody = $('eps-tabla-tbody');
+  if (!res.length) {
+    tbody.innerHTML = '<tr><td colspan="5"><span class="eps-placeholder">No hay algoritmos seleccionados.</span></td></tr>';
+    $('eps-chart').innerHTML = '<div class="eps-placeholder">Sin resultados.</div>';
+    $('eps-gantts').innerHTML = '<div class="eps-placeholder">Sin resultados.</div>';
+    $('eps-consolas').innerHTML = '<div class="eps-placeholder">Sin resultados.</div>';
+    $('eps-btn-csv').disabled = true;
+    return;
+  }
+  const cols = ['MTT', 'MWT', 'NCS', 'NS'];
+  const mejor = {}, peor = {};
+  for (const col of cols) {
+    const vals = res.map(r => r[col]);
+    mejor[col] = Math.min(...vals);
+    peor[col] = Math.max(...vals);
+  }
+  tbody.innerHTML = '';
+  for (const r of res) {
+    const celdas = cols.map(col => {
+      const v = r[col];
+      let cls = '';
+      if (mejor[col] !== peor[col]) { // si todos empatan, no resaltar
+        if (v === mejor[col]) cls = ' class="best"';
+        else if (v === peor[col]) cls = ' class="worst"';
+      }
+      const txt = (col === 'MTT' || col === 'MWT') ? fmtES(v) : String(v);
+      return '<td' + cls + '>' + txt + '</td>';
+    }).join('');
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td title="' + r.titulo + '">' + r.nombre + '</td>' + celdas;
+    tbody.appendChild(tr);
+  }
+  $('eps-btn-csv').disabled = false;
+  renderEpsChart(res);
+  renderEpsGantts(res);
+  renderEpsConsolas(res);
+}
+
+function renderEpsChart(res) {
+  const cont = $('eps-chart');
+  cont.innerHTML = '';
+  const max = Math.max(...res.map(r => r.MWT), 1);
+  for (const r of res) {
+    const fila = document.createElement('div');
+    fila.className = 'mwt-row';
+    fila.innerHTML = '<span class="mwt-label">' + r.nombre + '</span>' +
+      '<div class="mwt-track"><div class="mwt-bar" style="width:' + (r.MWT / max * 100).toFixed(2) + '%" title="' + r.nombre + ' · MWT = ' + fmtES(r.MWT) + '"></div></div>' +
+      '<span class="mwt-value">' + fmtES(r.MWT) + '</span>';
+    cont.appendChild(fila);
+  }
+}
+
+function renderEpsGantts(res) {
+  const cont = $('eps-gantts');
+  cont.innerHTML = '';
+  for (const r of res) {
+    const fila = document.createElement('div');
+    fila.className = 'eps-gantt-row';
+    const label = document.createElement('span');
+    label.className = 'eps-gantt-label';
+    label.textContent = r.nombre;
+    const strip = document.createElement('div');
+    strip.className = 'eps-gantt-strip';
+    for (const seg of r.segmentos) {
+      const d = document.createElement('div');
+      d.className = 'eps-gantt-seg' + (seg.nombre ? '' : ' idle');
+      d.style.width = (seg.dur / r.duracionTotal * 100) + '%';
+      if (seg.nombre) d.style.background = getColor(seg.nombre);
+      d.title = (seg.nombre || 'CPU inactiva') + ' · t=' + seg.inicio + '–' + (seg.inicio + seg.dur);
+      strip.appendChild(d);
+    }
+    const fin = document.createElement('span');
+    fin.className = 'eps-gantt-fin';
+    fin.textContent = 't=' + r.duracionTotal;
+    fila.appendChild(label); fila.appendChild(strip); fila.appendChild(fin);
+    cont.appendChild(fila);
+  }
+}
+
+function renderEpsConsolas(res) {
+  const cont = $('eps-consolas');
+  cont.innerHTML = '';
+  for (const r of res) {
+    const det = document.createElement('details');
+    det.className = 'eps-details';
+    const summary = document.createElement('summary');
+    summary.textContent = r.nombre + ' — ' + r.finalizados + '/' + r.total + ' procesos · MTT ' +
+      fmtES(r.MTT) + ' · MWT ' + fmtES(r.MWT) + ' · NCS ' + r.NCS + ' · NS ' + r.NS;
+    const consola = document.createElement('div');
+    consola.className = 'eps-console';
+    consola.textContent = r.log.join('\n');
+    det.appendChild(summary); det.appendChild(consola);
+    cont.appendChild(det);
+  }
+}
+
+function epsExportarCSV() {
+  const cfg = epsEstado.config;
+  const lineas = [];
+  lineas.push('# EPSSim Web - resultados comparativos');
+  lineas.push('# numeroProcesos=' + cfg.n + ' maxBT=' + cfg.maxBT + ' maxAT=' + cfg.maxAT + ' seed=' + cfg.seed);
+  lineas.push('Algoritmo,MTT,MWT,NCS,NS');
+  for (const r of epsEstado.resultados) {
+    lineas.push([r.nombre, r.MTT.toFixed(2), r.MWT.toFixed(2), r.NCS, r.NS].join(','));
+  }
+  const blob = new Blob(['\ufeff' + lineas.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'epssim_seed' + cfg.seed + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+function setVista(v) {
+  vistaActual = v;
+  $('vista-eps').style.display = v === 'eps' ? '' : 'none';
+  $('vista-paso').style.display = v === 'paso' ? '' : 'none';
+  $('tab-eps').classList.toggle('active', v === 'eps');
+  $('tab-paso').classList.toggle('active', v === 'paso');
+}
+
+function epsInit() {
+  $('tab-eps').onclick = () => setVista('eps');
+  $('tab-paso').onclick = () => setVista('paso');
+  $('eps-btn-generar').onclick = epsGenerar;
+  $('eps-btn-ejecutar').onclick = epsEjecutar;
+  $('eps-btn-csv').onclick = epsExportarCSV;
+  $('eps-btn-todos').onclick = () => { EPS_ALGOS.forEach(d => epsEstado.seleccion.add(d.id)); renderEpsChips(); };
+  $('eps-btn-ninguno').onclick = () => { epsEstado.seleccion.clear(); renderEpsChips(); };
+  ['eps-n', 'eps-maxbt', 'eps-maxat', 'eps-seed'].forEach(id =>
+    $(id).addEventListener('change', () => {
+      epsEstado.config = epsLeerConfig();
+      renderEpsProperties();
+      renderEpsChips();
+    }));
+  ['eps-ets-alpha', 'eps-ets-qmin', 'eps-ets-qmax', 'eps-ets-metodo', 'eps-ets-percentil', 'eps-ets-mover'].forEach(id =>
+    $(id).addEventListener('change', renderEpsProperties));
+  renderEpsChips();
+  epsGenerar();
+}
+
 // ───────────────── Init ─────────────────
 processes = clone(EXAMPLES.FCFS);
 setAlgorithm('FCFS');
 setup();
 render();
+epsInit();
+setVista('eps');
 </script>
 </body>
 </html>
